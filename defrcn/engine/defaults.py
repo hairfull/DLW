@@ -12,7 +12,7 @@ from detectron2.utils.env import seed_all_rng
 from detectron2.utils.logger import setup_logger
 from detectron2.engine import hooks, SimpleTrainer
 from detectron2.utils.collect_env import collect_env_info
-from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter
+from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter, EventStorage
 from defrcn.data import *
 from defrcn.modeling import build_model
 from defrcn.engine.hooks import EvalHookDeFRCN
@@ -25,7 +25,6 @@ from defrcn.dataloader import MetadataCatalog, build_detection_test_loader, buil
 __all__ = [
     "default_argument_parser",
     "default_setup",
-    "DefaultPredictor",
     "DefaultTrainer",
 ]
 
@@ -128,6 +127,7 @@ def default_setup(cfg, args):
         torch.backends.cudnn.benchmark = cfg.CUDNN_BENCHMARK
 
 
+# 这个好像没用，之后看删了是否影响
 class DefaultPredictor:
     """
     Create a simple end-to-end predictor with the given config.
@@ -270,7 +270,7 @@ class DefaultTrainer(SimpleTrainer):
         self.start_iter = 0
         self.max_iter = cfg.SOLVER.MAX_ITER
         self.cfg = cfg
-
+        # 存到了self._hooks里
         self.register_hooks(self.build_hooks())
 
     def resume_or_load(self, resume=True):
@@ -382,7 +382,47 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             OrderedDict of results, if evaluation is enabled. Otherwise None.
         """
-        super().train(self.start_iter, self.max_iter)
+        logger = logging.getLogger(__name__)
+        logger.info("Starting training from iteration {}".format(self.start_iter))
+
+        self.iter = self.start_iter
+
+        with EventStorage(self.start_iter) as self.storage:
+            try:
+                self.before_train()
+                self.cfg.defrost()
+                for i in range(self.start_iter, self.max_iter):
+                    # begin
+                    if self.cfg.MODEL.TWO_STEP_SCALE > 0:
+                        if self.iter >= self.max_iter:
+                            break
+                        self.before_step()
+                        # 传RPN不传RCNN时
+                        self.cfg.MODEL.RPN.BACKWARD_SCALE = self.cfg.MODEL.TWO_STEP_SCALE
+                        self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE = 0
+                        self.run_step()
+                        self.after_step()
+                        self.iter += 1
+                        self.before_step()
+                        # 传RCNN不传RPN时
+                        self.cfg.MODEL.RPN.BACKWARD_SCALE = 0
+                        self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE = self.cfg.MODEL.TWO_STEP_SCALE
+                        self.run_step()
+                        self.after_step()
+                        self.iter += 1
+                    # end
+                    else:
+                        self.before_step()
+                        self.run_step()
+                        self.after_step()
+                        self.iter += 1
+            except Exception:
+                logger.exception("Exception during training:")
+                raise
+            finally:
+                self.after_train()
+                self.cfg.freeze()
+
         if hasattr(self, "_last_eval_results") and comm.is_main_process():
             verify_results(self.cfg, self._last_eval_results)
             return self._last_eval_results

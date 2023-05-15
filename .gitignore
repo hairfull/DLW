@@ -6,7 +6,7 @@ _ext
 build/
 dist/
 wheels/
-
+configs/rdd/defrcn_gfsod_r101_novel1*
 # pytorch/python/numpy formats
 *.pth
 *.pkl
