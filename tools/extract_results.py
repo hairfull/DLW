@@ -7,7 +7,7 @@ from tabulate import tabulate
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--res-dir', type=str, default='/home/wxq/od/DeFRCN/checkpoints/rdd0/defrcn_gfsod_r101_novel1/tfa-like', help='Path to the results')
+    parser.add_argument('--res-dir', type=str, default='/home/wxq/od/DeFRCN/checkpoints/rdd_2step/defrcn_gfsod_r101_novel1/', help='Path to the results')
     parser.add_argument('--shot-list', type=int, nargs='+', default=[1, 2, 3, 5, 10], help='')
     args = parser.parse_args()
 

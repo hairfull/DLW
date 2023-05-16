@@ -1,0 +1,15 @@
+datasets/RDD/JPEGImages/Japan_003446.jpg
+datasets/RDD/JPEGImages/India_009667.jpg
+datasets/RDD/JPEGImages/Japan_003398.jpg
+datasets/RDD/JPEGImages/Czech_002682.jpg
+datasets/RDD/JPEGImages/India_000147.jpg
+datasets/RDD/JPEGImages/Japan_002222.jpg
+datasets/RDD/JPEGImages/India_002818.jpg
+datasets/RDD/JPEGImages/China_MotorBike_001073.jpg
+datasets/RDD/JPEGImages/India_002972.jpg
+datasets/RDD/JPEGImages/Norway_003637.jpg
+datasets/RDD/JPEGImages/Japan_001541.jpg
+datasets/RDD/JPEGImages/Japan_010884.jpg
+datasets/RDD/JPEGImages/Japan_011598.jpg
+datasets/RDD/JPEGImages/India_004065.jpg
+datasets/RDD/JPEGImages/India_004719.jpg
