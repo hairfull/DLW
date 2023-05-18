@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/rdd_2step/
+SAVE_DIR=checkpoints/rdd_step2/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
 SPLIT_ID=1
@@ -22,7 +22,15 @@ do
             --opts MODEL.WEIGHTS ${BASE_WEIGHT} OUTPUT_DIR ${OUTPUT_DIR}                     \
                    TEST.PCB_MODELPATH ${IMAGENET_PRETRAIN_TORCH}
         rm ${CONFIG_PATH}
-#        rm ${OUTPUT_DIR}/model_final.pth
+        rm ${OUTPUT_DIR}/model_final.pth
     done
 done
+
+for seed in {6..10}; do
+  for shot in 1 2 3 5 10; do
+    path="${SAVE_DIR}/defrcn_gfsod_r101_novel1/${shot}shot_seed${seed}/log.txt"
+    sed -i '$d' ${path}
+  done
+done
+
 python3 tools/extract_results.py --res-dir ${SAVE_DIR}/defrcn_gfsod_r101_novel${SPLIT_ID} --shot-list 1 2 3 5 10  # surmarize all results
