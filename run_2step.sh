@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/rdd_step2/
+SAVE_DIR=checkpoints/rdd_2step_1e-3_1e-2/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
 SPLIT_ID=1
@@ -10,9 +10,9 @@ BASE_WEIGHT=checkpoints/rdd1/defrcn_det_r101_base1/model_reset_surgery.pth
 
 # ------------------------------ 2 step Novel Fine-tuning ------------------------------- #
 # --> 2. TFA-like, i.e. run seed0~9 for robust results (G-FSOD, 80 classes)
-for seed in 1 2 3 4 5 6 7 8 9 10
+for seed in 3 4 6 7 8 9
 do
-    for shot in 1 2 3 5 10
+    for shot in 10
     do
         python3 tools/create_config.py --dataset voc --config_root configs/rdd               \
             --shot ${shot} --seed ${seed} --setting 'gfsod' --split ${SPLIT_ID}
@@ -26,11 +26,11 @@ do
     done
 done
 
-for seed in {6..10}; do
-  for shot in 1 2 3 5 10; do
-    path="${SAVE_DIR}/defrcn_gfsod_r101_novel1/${shot}shot_seed${seed}/log.txt"
-    sed -i '$d' ${path}
-  done
-done
+# for seed in {6..10}; do
+#  for shot in 1 2 3 5 10; do
+#    path="${SAVE_DIR}/defrcn_gfsod_r101_novel1/${shot}shot_seed${seed}/log.txt"
+#    sed -i '$d' ${path}
+#  done
+# done
 
 python3 tools/extract_results.py --res-dir ${SAVE_DIR}/defrcn_gfsod_r101_novel${SPLIT_ID} --shot-list 1 2 3 5 10  # surmarize all results

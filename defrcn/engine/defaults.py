@@ -391,14 +391,12 @@ class DefaultTrainer(SimpleTrainer):
             try:
                 self.before_train()
                 self.cfg.defrost()
-                for i in range(self.start_iter, self.max_iter):
+                for i in range(self.start_iter, self.max_iter // 2):
                     # begin
                     if self.cfg.MODEL.TWO_STEP_SCALE > 0:
-                        if self.iter >= self.max_iter:
-                            break
                         self.before_step()
                         # 传RPN不传RCNN时
-                        self.cfg.MODEL.RPN.BACKWARD_SCALE = self.cfg.MODEL.TWO_STEP_SCALE
+                        self.cfg.MODEL.RPN.BACKWARD_SCALE = 1e-3
                         self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE = 0
                         self.run_step()
                         self.after_step()
@@ -406,11 +404,12 @@ class DefaultTrainer(SimpleTrainer):
                         self.before_step()
                         # 传RCNN不传RPN时
                         self.cfg.MODEL.RPN.BACKWARD_SCALE = 0
-                        self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE = self.cfg.MODEL.TWO_STEP_SCALE
+                        self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE = 1e-2
                         self.run_step()
                         self.after_step()
                         self.iter += 1
-                    # end
+                        # end
+                    # 这块循环数减半了注意
                     else:
                         self.before_step()
                         self.run_step()
