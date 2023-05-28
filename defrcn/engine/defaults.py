@@ -13,6 +13,8 @@ from detectron2.utils.logger import setup_logger
 from detectron2.engine import hooks, SimpleTrainer
 from detectron2.utils.collect_env import collect_env_info
 from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter
+
+from defrcn.config import CfgNode, get_cfg
 from defrcn.data import *
 from defrcn.modeling import build_model
 from defrcn.engine.hooks import EvalHookDeFRCN
@@ -126,6 +128,45 @@ def default_setup(cfg, args):
     # typical validation set.
     if not (hasattr(args, "eval_only") and args.eval_only):
         torch.backends.cudnn.benchmark = cfg.CUDNN_BENCHMARK
+
+
+def assign_grads(model, grads):
+    """
+    Similar to `assign_weights` but this time, manually assign `grads` vector to a model.
+    :param model: PyTorch Model.
+    :param grads: Gradient vectors.
+    :return:
+    """
+    state_dict = model.state_dict(keep_vars=True)
+    index = 0
+    for param in state_dict.keys():
+        # ignore batchnorm params
+        if 'running_mean' in param or 'running_var' in param or 'num_batches_tracked' in param:
+            continue
+        param_count = state_dict[param].numel()
+        param_shape = state_dict[param].shape
+        state_dict[param].grad = grads[index:index+param_count].view(param_shape).clone()
+        index += param_count
+    model.load_state_dict(state_dict)
+    return model
+
+
+def flatten_grads(model):
+    """
+    Flattens the gradients of a model (after `.backward()` call) as a single, large vector.
+    :param model: PyTorch model.
+    :return: 1D torch Tensor
+    """
+    all_grads = []
+    for name, param in model.named_parameters():
+        all_grads.append(param.grad.view(-1))
+    return torch.cat(all_grads)
+
+def setup_base_cfg():
+    cfg = get_cfg()
+    cfg.merge_from_file('/home/wxq/od/DeFRCN/configs/rdd/defrcn_det_r101_base1.yaml')
+    cfg.freeze()
+    return cfg
 
 
 class DefaultPredictor:
@@ -256,6 +297,11 @@ class DefaultTrainer(SimpleTrainer):
                 find_unused_parameters=True,
             )
         super().__init__(model, data_loader, optimizer)
+
+        # 有点怀疑这里有batch_size吗
+        base_cfg = setup_base_cfg()
+        base_loader = self.build_train_loader(base_cfg)
+        self._base_loader_iter = iter(base_loader)
 
         self.scheduler = self.build_lr_scheduler(cfg, optimizer)
         # Assume no other objects need to be checkpointed.
@@ -513,3 +559,34 @@ class DefaultTrainer(SimpleTrainer):
         if len(results) == 1:
             results = list(results.values())[0]
         return results
+
+    def run_step(self):
+        """
+        Implement the standard training logic described above.
+        """
+        assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
+        self.optimizer.zero_grad()
+
+        # few shot
+        data = next(self._data_loader_iter)
+        loss_dict = self.model(data)
+        self._write_metrics(loss_dict)
+        losses = sum(loss_dict.values()) # 两种loss加起来算
+        losses.backward()
+        grad_novel = flatten_grads(self.model).detach().clone()
+
+        data_base = next(self._base_loader_iter)
+        loss_dict = self.model(data_base)
+        losses  = sum(loss_dict.values())
+        losses.backward()
+        grad_base = flatten_grads(self.model).detach.clone()
+
+        if torch.dot(grad_base, grad_novel) < 0:
+            gn = (1 - torch.dot(grad_novel, grad_base) / torch.dot(grad_novel, grad_novel)) * grad_novel
+            gb = (1 - torch.dot(grad_novel, grad_base) / torch.dot(grad_base, grad_base)) * grad_base
+            new_grad = (gn + gb) / 2
+        else:
+            new_grad = (grad_base + grad_novel) / 2
+        self.optimizer.zero_grad()
+        self.model = assign_grads(self.model, new_grad)
+        self.optimizer.step()
