@@ -3,10 +3,7 @@ __pycache__
 _ext
 *.pyc
 *.so
-build/
-dist/
-wheels/
-
+configs/rdd/defrcn_gfsod_r101_novel1*
 # pytorch/python/numpy formats
 *.pth
 *.pkl
@@ -28,7 +25,8 @@ wheels/
 # vscode editor settings
 .vscode
 
-exp/
 checkpoints/
-_DEL_/
-datasets/
+datasets/RDD
+datasets/VOC2007
+datasets/VOC2012
+tools/*.jpg

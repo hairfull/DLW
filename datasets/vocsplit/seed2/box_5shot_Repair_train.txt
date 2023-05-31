@@ -1,0 +1,5 @@
+datasets/RDD/JPEGImages/China_Drone_000395.jpg
+datasets/RDD/JPEGImages/China_Drone_001112.jpg
+datasets/RDD/JPEGImages/China_Drone_001326.jpg
+datasets/RDD/JPEGImages/China_Drone_001087.jpg
+datasets/RDD/JPEGImages/China_Drone_000779.jpg

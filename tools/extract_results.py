@@ -7,7 +7,7 @@ from tabulate import tabulate
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--res-dir', type=str, default='/home/wxq/od/DeFRCN/checkpoints/rdd0/defrcn_gfsod_r101_novel1/tfa-like', help='Path to the results')
+    parser.add_argument('--res-dir', type=str, default='/home/wxq/od/DeFRCN/checkpoints/cfa/defrcn_gfsod_r101_novel1', help='Path to the results')
     parser.add_argument('--shot-list', type=int, nargs='+', default=[1, 2, 3, 5, 10], help='')
     args = parser.parse_args()
 
@@ -28,6 +28,7 @@ def main():
         for fid, fpath in enumerate(sorted(file_paths)):
             lineinfos = open(fpath).readlines()
             if fid == 0:
+                # -3, -1, -2
                 res_info = lineinfos[-2].strip()
                 header = res_info.split(':')[-1].split(',')
             res_info = lineinfos[-1].strip()

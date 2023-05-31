@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/China_MotorBike_001975.jpg
+datasets/RDD/JPEGImages/India_002428.jpg

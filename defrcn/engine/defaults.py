@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 import logging
 import argparse
@@ -141,6 +142,8 @@ def assign_grads(model, grads):
     index = 0
     for param in state_dict.keys():
         # ignore batchnorm params
+        if state_dict[param].grad is None:
+            continue
         if 'running_mean' in param or 'running_var' in param or 'num_batches_tracked' in param:
             continue
         param_count = state_dict[param].numel()
@@ -159,12 +162,14 @@ def flatten_grads(model):
     """
     all_grads = []
     for name, param in model.named_parameters():
-        all_grads.append(param.grad.view(-1))
+        if param.grad is not None:
+            all_grads.append(param.grad.view(-1))
     return torch.cat(all_grads)
 
 def setup_base_cfg():
     cfg = get_cfg()
     cfg.merge_from_file('/home/wxq/od/DeFRCN/configs/rdd/defrcn_det_r101_base1.yaml')
+    cfg.DATALOADER.NUM_WORKERS = 0
     cfg.freeze()
     return cfg
 
@@ -298,10 +303,9 @@ class DefaultTrainer(SimpleTrainer):
             )
         super().__init__(model, data_loader, optimizer)
 
-        # 有点怀疑这里有batch_size吗
         base_cfg = setup_base_cfg()
-        base_loader = self.build_train_loader(base_cfg)
-        self._base_loader_iter = iter(base_loader)
+        self.base_loader = self.build_train_loader(base_cfg)
+        self._base_loader_iter = iter(self.base_loader)
 
         self.scheduler = self.build_lr_scheduler(cfg, optimizer)
         # Assume no other objects need to be checkpointed.
@@ -565,28 +569,30 @@ class DefaultTrainer(SimpleTrainer):
         Implement the standard training logic described above.
         """
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
+        start = time.perf_counter()
         self.optimizer.zero_grad()
 
         # few shot
         data = next(self._data_loader_iter)
+        data_time = time.perf_counter() - start
         loss_dict = self.model(data)
-        self._write_metrics(loss_dict)
+        self._write_metrics(loss_dict, data_time)
         losses = sum(loss_dict.values()) # 两种loss加起来算
         losses.backward()
         grad_novel = flatten_grads(self.model).detach().clone()
 
+        self.optimizer.zero_grad()
         data_base = next(self._base_loader_iter)
         loss_dict = self.model(data_base)
-        losses  = sum(loss_dict.values())
+        losses = sum(loss_dict.values())
         losses.backward()
-        grad_base = flatten_grads(self.model).detach.clone()
+        grad_base = flatten_grads(self.model).detach().clone()
 
         if torch.dot(grad_base, grad_novel) < 0:
-            gn = (1 - torch.dot(grad_novel, grad_base) / torch.dot(grad_novel, grad_novel)) * grad_novel
-            gb = (1 - torch.dot(grad_novel, grad_base) / torch.dot(grad_base, grad_base)) * grad_base
+            gn = (1 - torch.dot(grad_base, grad_novel) / torch.dot(grad_novel, grad_novel)) * grad_novel
+            gb = (1 - torch.dot(grad_base, grad_novel) / torch.dot(grad_base, grad_base)) * grad_base
             new_grad = (gn + gb) / 2
         else:
             new_grad = (grad_base + grad_novel) / 2
-        self.optimizer.zero_grad()
         self.model = assign_grads(self.model, new_grad)
         self.optimizer.step()

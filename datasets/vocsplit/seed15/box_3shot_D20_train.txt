@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/India_006057.jpg
+datasets/RDD/JPEGImages/United_States_002291.jpg
+datasets/RDD/JPEGImages/India_002233.jpg
