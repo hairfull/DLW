@@ -73,8 +73,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         del all_predictions
 
         self._logger.info(
-            "Evaluating rdd. "
-            "Note that results do not use the official Matlab API."
+            "Evaluating. Note that results do not use the official Matlab API."
         )
 
         with tempfile.TemporaryDirectory(prefix="pascal_voc_eval_") as dirname:

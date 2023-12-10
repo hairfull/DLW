@@ -45,16 +45,31 @@ class GeneralizedRCNN(nn.Module):
                 p.requires_grad = False
             print("froze roi_box_head parameters")
 
-    def forward(self, batched_inputs):
+    def forward(self, batched_inputs, is_base=False):
         if not self.training:
             return self.inference(batched_inputs)
         assert "instances" in batched_inputs[0]
         gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
+        if not is_base:
+            for i in range(len(gt_instances)):
+                gt_instances[i]._fields['gt_classes'] = gt_instances[i]._fields['gt_classes'] + 6
         proposal_losses, detector_losses, _, _ = self._forward_once_(batched_inputs, gt_instances)
         losses = {}
         losses.update(detector_losses)
         losses.update(proposal_losses)
         return losses
+    # def forward(self, batched_inputs):
+    #     if not self.training:
+    #         return self.inference(batched_inputs)
+    #     assert "instances" in batched_inputs[0]
+    #     gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
+    #     for i in range(len(gt_instances) // 2):
+    #         gt_instances[i]._fields['gt_classes'] = gt_instances[i]._fields['gt_classes'] + 6
+    #     proposal_losses, detector_losses, _, _ = self._forward_once_(batched_inputs, gt_instances)
+    #     losses = {}
+    #     losses.update(detector_losses)
+    #     losses.update(proposal_losses)
+    #     return losses
 
     def inference(self, batched_inputs):
         assert not self.training
@@ -73,15 +88,15 @@ class GeneralizedRCNN(nn.Module):
         features = self.backbone(images.tensor)
 
         features_de_rpn = features
-        if self.cfg.MODEL.RPN.ENABLE_DECOUPLE:
-            scale = self.cfg.MODEL.RPN.BACKWARD_SCALE
-            features_de_rpn = {k: self.affine_rpn(decouple_layer(features[k], scale)) for k in features}
+        # if self.cfg.MODEL.RPN.ENABLE_DECOUPLE:
+        #     scale = self.cfg.MODEL.RPN.BACKWARD_SCALE
+        #     features_de_rpn = {k: self.affine_rpn(decouple_layer(features[k], scale)) for k in features}
         proposals, proposal_losses = self.proposal_generator(images, features_de_rpn, gt_instances)
 
         features_de_rcnn = features
-        if self.cfg.MODEL.ROI_HEADS.ENABLE_DECOUPLE:
-            scale = self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE
-            features_de_rcnn = {k: self.affine_rcnn(decouple_layer(features[k], scale)) for k in features}
+        # if self.cfg.MODEL.ROI_HEADS.ENABLE_DECOUPLE:
+        #     scale = self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE
+        #     features_de_rcnn = {k: self.affine_rcnn(decouple_layer(features[k], scale)) for k in features}
         results, detector_losses = self.roi_heads(images, features_de_rcnn, proposals, gt_instances)
 
         return proposal_losses, detector_losses, results, images.image_sizes
@@ -100,3 +115,14 @@ class GeneralizedRCNN(nn.Module):
         pixel_std = (torch.Tensor(
             self.cfg.MODEL.PIXEL_STD).to(self.device).view(num_channels, 1, 1))
         return lambda x: (x - pixel_mean) / pixel_std
+
+    def get_rpn_feature(self, batched_inputs, is_base=False):
+        assert not self.training
+        assert "instances" in batched_inputs[0]
+
+        if not is_base:
+            for i in range(len(gt_instances)):
+                gt_instances[i]._fields['gt_classes'] = gt_instances[i]._fields['gt_classes'] + 6
+
+        proposal_losses, detector_losses, results, image_sizes = self._forward_once_(batched_inputs, gt_instances)
+        return proposal_losses

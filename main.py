@@ -37,6 +37,7 @@ class Trainer(DefaultTrainer):
 
 def setup(args):
     cfg = get_cfg()
+    cfg.set_new_allowed(True)
     cfg.merge_from_file(args.config_file)
     if args.opts:
         cfg.merge_from_list(args.opts)

@@ -17,6 +17,9 @@ from detectron2.data.common import AspectRatioGroupedDataset, DatasetFromList, M
 from detectron2.data.detection_utils import check_metadata_consistency
 from detectron2.data.samplers import InferenceSampler, RepeatFactorTrainingSampler, TrainingSampler
 from .dataset_mapper import DatasetMapper
+import torch.multiprocessing
+
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 
 __all__ = [

@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/rdd1/
+SAVE_DIR=checkpoints/rdd2/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
 SPLIT_ID=1
-
-
-# ------------------------------- Base Pre-train ---------------------------------- #
-python3 main.py --num-gpus 1 --config-file configs/rdd/defrcn_det_r101_base1.yaml     \
-    --opts OUTPUT_DIR ${SAVE_DIR}/defrcn_det_r101_base${SPLIT_ID}
 
 # ----------------------------- Model Preparation --------------------------------- #
 # 基类训练完后把model_reset_surgery.pth存在SAVE_DIR里

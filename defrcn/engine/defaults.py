@@ -6,14 +6,15 @@ import argparse
 from collections import OrderedDict
 from fvcore.common.file_io import PathManager
 from fvcore.nn.precise_bn import get_bn_modules
-from torch.nn.parallel import DistributedDataParallel
+from torch.nn.parallel import DataParallel, DistributedDataParallel
+from torch.cuda.amp import autocast
 from detectron2.utils import comm
 from detectron2.data import transforms as T
 from detectron2.utils.env import seed_all_rng
 from detectron2.utils.logger import setup_logger
 from detectron2.engine import hooks, SimpleTrainer
 from detectron2.utils.collect_env import collect_env_info
-from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter
+from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter, get_event_storage
 
 from defrcn.config import CfgNode, get_cfg
 from defrcn.data import *
@@ -200,7 +201,14 @@ class DefaultPredictor:
         self.cfg = cfg.clone()  # cfg can be modified by model
         self.model = build_model(self.cfg)
         self.model.eval()
-        self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
+
+        # loader
+        base_cfg = setup_base_cfg()
+        self.novel_loader = self.build_train_loader(cfg)
+        self.base_loader = self.build_train_loader(base_cfg)
+
+        self._novel_loader_iter = iter(self.novel_loader)
+        self._base_loader_iter = iter(self.base_loader)
 
         checkpointer = DetectionCheckpointer(self.model)
         checkpointer.load(cfg.MODEL.WEIGHTS)
@@ -212,6 +220,7 @@ class DefaultPredictor:
 
         self.input_format = cfg.INPUT.FORMAT
         assert self.input_format in ["RGB", "BGR"], self.input_format
+
 
     @torch.no_grad()
     def __call__(self, original_image):
@@ -235,6 +244,27 @@ class DefaultPredictor:
         inputs = {"image": image, "height": height, "width": width}
         predictions = self.model([inputs])[0]
         return predictions
+
+    @torch.no_grad()
+    def get_rpn_feature(self):
+        # 改一下iter方法:
+        for inputs in self:
+            proposal_loss = self.model.get_rpn_feauture(inputs, is_base=False)
+
+        return None
+
+    @classmethod
+    def build_test_loader(cls, cfg, dataset_name):
+        """
+        Returns:
+            iterable
+
+        It now calls :func:`defrcn.data.build_detection_test_loader`.
+        Overwrite it if you'd like a different data loader.
+        """
+        return build_detection_test_loader(cfg, dataset_name)
+
+
 
 
 class DefaultTrainer(SimpleTrainer):
@@ -301,13 +331,29 @@ class DefaultTrainer(SimpleTrainer):
                 broadcast_buffers=False,
                 find_unused_parameters=True,
             )
+
+        # AMP
+        unsupported = "AMPTrainer does not support single-process multi-device training!"
+        if isinstance(model, DistributedDataParallel):
+            assert not (model.device_ids and len(model.device_ids) > 1), unsupported
+        assert not isinstance(model, DataParallel), unsupported
+
         super().__init__(model, data_loader, optimizer)
 
+        # base
         base_cfg = setup_base_cfg()
         self.base_loader = self.build_train_loader(base_cfg)
         self._base_loader_iter = iter(self.base_loader)
 
+        # parameter
+        self.alpha = cfg.DYNAMIC.ALPHA
+        self.beta = cfg.DYNAMIC.BETA
+        self.epsilon = cfg.DYNAMIC.EPSILON
+        self.c = cfg.DYNAMIC.C
+        self.ema_loss = 0.45
+
         self.scheduler = self.build_lr_scheduler(cfg, optimizer)
+        # self.grad_scaler = GradScaler()
         # Assume no other objects need to be checkpointed.
         # We can later make it checkpoint the stateful hooks
         self.checkpointer = DetectionCheckpointer(
@@ -569,30 +615,67 @@ class DefaultTrainer(SimpleTrainer):
         Implement the standard training logic described above.
         """
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
-        start = time.perf_counter()
+        storage = get_event_storage()
         self.optimizer.zero_grad()
 
-        # few shot
-        data = next(self._data_loader_iter)
-        data_time = time.perf_counter() - start
-        loss_dict = self.model(data)
-        self._write_metrics(loss_dict, data_time)
-        losses = sum(loss_dict.values()) # 两种loss加起来算
-        losses.backward()
-        grad_novel = flatten_grads(self.model).detach().clone()
+        # main code
+        # # novel
+        # data = next(self._data_loader_iter)
+        # loss_dict = self.model(data, is_base=False)
+        # losses = sum(loss_dict.values()) # 两种loss加起来算
+        # storage.put_scalar("dynamic/novel_loss", losses)
+        # losses.backward()
+        # grad_novel = flatten_grads(self.model).detach().clone()
+        #
+        # # base
+        # self.optimizer.zero_grad()
+        # # print(torch.cuda.memory_allocated()/ (1024 ** 3))
+        # data_base = next(self._base_loader_iter)
+        # # with autocast():
+        # #     loss_dict = self.model(data_base, is_base=True)
+        # #     losses = sum(loss_dict.values())
+        # loss_dict = self.model(data_base, is_base=True)
+        # losses = sum(loss_dict.values())
+        # storage.put_scalar("dynamic/base_loss", losses)
+        # losses.backward()
+        # grad_base = flatten_grads(self.model).detach().clone()
+        #
+        # with torch.no_grad():
+        #     self.ema_loss = self.beta * self.ema_loss + (1 - self.beta) * losses
+        # storage.put_scalar("dynamic/ema_loss", self.ema_loss)
+        #
+        # # 这里的loss是一个标量
+        # general_converge = self.alpha * (self.ema_loss - self.c) / self.ema_loss
+        # storage.put_scalar("dynamic/general_converge", general_converge)
+        #
+        # angle = self.epsilon - torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
+        # storage.put_scalar("dynamic/angle", angle)
+        #
+        # dynamic_lambda = max(general_converge, angle)
+        # storage.put_scalar("dynamic/lambda", dynamic_lambda)
+        #
+        # new_grad = dynamic_lambda * grad_base + grad_novel
+        #
+        # self.model = assign_grads(self.model, new_grad)
+        # self.optimizer.step()
 
-        self.optimizer.zero_grad()
+
+        # ablation for upsampling
+        data_novel = next(self._data_loader_iter)
         data_base = next(self._base_loader_iter)
-        loss_dict = self.model(data_base)
-        losses = sum(loss_dict.values())
+        assert len(data_base) == len(data_novel), f"imbalanced novel {len(data_novel)} and base {len(data_base)}"
+        try:
+            loss_dict = self.model(data_novel, is_base=False)
+            losses_novel = sum(loss_dict.values())
+        except FloatingPointError:
+            losses_novel = 0
+        storage.put_scalar("loss/novel_loss", losses_novel)
+        try:
+            loss_dict = self.model(data_base, is_base=True)
+            loss_base = sum(loss_dict.values())
+        except FloatingPointError:
+            loss_base = 0
+        storage.put_scalar("loss/base_loss", loss_base)
+        losses = losses_novel + loss_base
         losses.backward()
-        grad_base = flatten_grads(self.model).detach().clone()
-
-        if torch.dot(grad_base, grad_novel) < 0:
-            gn = (1 - torch.dot(grad_base, grad_novel) / torch.dot(grad_novel, grad_novel)) * grad_novel
-            gb = (1 - torch.dot(grad_base, grad_novel) / torch.dot(grad_base, grad_base)) * grad_base
-            new_grad = (gn + gb) / 2
-        else:
-            new_grad = (grad_base + grad_novel) / 2
-        self.model = assign_grads(self.model, new_grad)
         self.optimizer.step()
