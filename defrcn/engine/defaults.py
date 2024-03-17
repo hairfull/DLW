@@ -617,65 +617,69 @@ class DefaultTrainer(SimpleTrainer):
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
         storage = get_event_storage()
         self.optimizer.zero_grad()
+        #
+        # # main code
+        # if self.iter < 6000:
+        #     data_base = next(self._base_loader_iter)
+        #     try:
+        #         loss_dict = self.model(data_base, is_base=True)
+        #         loss_base = sum(loss_dict.values())
+        #     except FloatingPointError:
+        #         loss_base = 0
+        #     storage.put_scalar("loss/base_loss", loss_base)
+        #     loss_base.backward()
+        #     self.optimizer.step()
+        #     return
 
-        # main code
-        # # novel
-        # data = next(self._data_loader_iter)
-        # loss_dict = self.model(data, is_base=False)
-        # losses = sum(loss_dict.values()) # 两种loss加起来算
+        # novel
+        data = next(self._data_loader_iter)
+        try:
+            loss_dict = self.model(data, is_base=False)
+            losses = sum(loss_dict.values()) # 两种loss加起来算
+            losses.backward()
+        # 不行
+        except FloatingPointError:
+            losses = 0
+
+        grad_novel = flatten_grads(self.model).detach().clone()
         # storage.put_scalar("dynamic/novel_loss", losses)
-        # losses.backward()
-        # grad_novel = flatten_grads(self.model).detach().clone()
-        #
-        # # base
-        # self.optimizer.zero_grad()
-        # # print(torch.cuda.memory_allocated()/ (1024 ** 3))
-        # data_base = next(self._base_loader_iter)
-        # # with autocast():
-        # #     loss_dict = self.model(data_base, is_base=True)
-        # #     losses = sum(loss_dict.values())
-        # loss_dict = self.model(data_base, is_base=True)
-        # losses = sum(loss_dict.values())
+        storage.put_scalar("dynamic/novel_grad", torch.norm(grad_novel))
+
+        # base
+        self.optimizer.zero_grad()
+        # print(torch.cuda.memory_allocated()/ (1024 ** 3))
+        data_base = next(self._base_loader_iter)
+        # with autocast():
+        #     loss_dict = self.model(data_base, is_base=True)
+        #     losses = sum(loss_dict.values())
+        try:
+            loss_dict = self.model(data_base, is_base=True)
+            losses = sum(loss_dict.values())
+            losses.backward()
+        except FloatingPointError:
+            losses = 0
+        grad_base = flatten_grads(self.model).detach().clone()
         # storage.put_scalar("dynamic/base_loss", losses)
-        # losses.backward()
-        # grad_base = flatten_grads(self.model).detach().clone()
-        #
+        storage.put_scalar("dynamic/base_grad", torch.norm(grad_base))
+
         # with torch.no_grad():
-        #     self.ema_loss = self.beta * self.ema_loss + (1 - self.beta) * losses
-        # storage.put_scalar("dynamic/ema_loss", self.ema_loss)
-        #
+        #     if losses != 0:
+        #         self.ema_loss = self.beta * self.ema_loss + (1 - self.beta) * losses
+        #     storage.put_scalar("dynamic/ema_loss", self.ema_loss)
+
         # # 这里的loss是一个标量
         # general_converge = self.alpha * (self.ema_loss - self.c) / self.ema_loss
         # storage.put_scalar("dynamic/general_converge", general_converge)
         #
         # angle = self.epsilon - torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
+        #
         # storage.put_scalar("dynamic/angle", angle)
         #
         # dynamic_lambda = max(general_converge, angle)
         # storage.put_scalar("dynamic/lambda", dynamic_lambda)
-        #
-        # new_grad = dynamic_lambda * grad_base + grad_novel
-        #
-        # self.model = assign_grads(self.model, new_grad)
-        # self.optimizer.step()
+        dynamic_lambda = 1
 
+        new_grad = dynamic_lambda * grad_base + grad_novel
 
-        # ablation for upsampling
-        data_novel = next(self._data_loader_iter)
-        data_base = next(self._base_loader_iter)
-        assert len(data_base) == len(data_novel), f"imbalanced novel {len(data_novel)} and base {len(data_base)}"
-        try:
-            loss_dict = self.model(data_novel, is_base=False)
-            losses_novel = sum(loss_dict.values())
-        except FloatingPointError:
-            losses_novel = 0
-        storage.put_scalar("loss/novel_loss", losses_novel)
-        try:
-            loss_dict = self.model(data_base, is_base=True)
-            loss_base = sum(loss_dict.values())
-        except FloatingPointError:
-            loss_base = 0
-        storage.put_scalar("loss/base_loss", loss_base)
-        losses = losses_novel + loss_base
-        losses.backward()
+        self.model = assign_grads(self.model, new_grad)
         self.optimizer.step()

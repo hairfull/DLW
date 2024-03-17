@@ -115,14 +115,3 @@ class GeneralizedRCNN(nn.Module):
         pixel_std = (torch.Tensor(
             self.cfg.MODEL.PIXEL_STD).to(self.device).view(num_channels, 1, 1))
         return lambda x: (x - pixel_mean) / pixel_std
-
-    def get_rpn_feature(self, batched_inputs, is_base=False):
-        assert not self.training
-        assert "instances" in batched_inputs[0]
-
-        if not is_base:
-            for i in range(len(gt_instances)):
-                gt_instances[i]._fields['gt_classes'] = gt_instances[i]._fields['gt_classes'] + 6
-
-        proposal_losses, detector_losses, results, image_sizes = self._forward_once_(batched_inputs, gt_instances)
-        return proposal_losses
