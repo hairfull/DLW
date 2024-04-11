@@ -615,6 +615,8 @@ class DefaultTrainer(SimpleTrainer):
         """
         Implement the standard training logic described above.
         """
+        if self.iter > 8000:
+            return
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
         storage = get_event_storage()
         self.optimizer.zero_grad()
@@ -623,75 +625,69 @@ class DefaultTrainer(SimpleTrainer):
         data = next(self._data_loader_iter)
         try:
             loss_dict = self.model(data, is_base=False)
-            losses_novel = sum(loss_dict.values()) # 两种loss加起来算
-            # losses_novel.backward()
-        # 不行
-        except FloatingPointError:
-            losses_novel = 0
+        except:
+            return
+        losses_novel = sum(loss_dict.values())  # 两种loss加起来算
+        losses_novel.backward()
+        storage.put_scalar("dynamic/loss_n", losses_novel)
+        grad_novel = flatten_grads(self.model).detach().clone()
 
-        storage.put_scalar("dynamic/l_n", losses_novel)
-        # grad_novel = flatten_grads(self.model).detach().clone()
-        # grad_novel_norm = torch.norm(grad_novel)
-        # storage.put_scalar("dynamic/g_n", grad_novel_norm)
-        # storage.put_scalar("dynamic/novel_loss", losses)
-        # with torch.no_grad():
-        #     self.ema_novel = self.beta * self.ema_novel + (1 - self.beta) * torch.norm(grad_novel)
-        #     storage.put_scalar("dynamic/ema_novel", self.ema_novel)
+        self.optimizer.zero_grad()
 
         # base
-        self.optimizer.zero_grad()
-        # print(torch.cuda.memory_allocated()/ (1024 ** 3))
         data_base = next(self._base_loader_iter)
-        # with autocast():
-        #     loss_dict = self.model(data_base, is_base=True)
-        #     losses = sum(loss_dict.values())
-        try:
-            loss_dict = self.model(data_base, is_base=True)
-            losses_base = sum(loss_dict.values())
-            if self.iter == 0:
-                with torch.no_grad():
-                    self.ema_lb0 = losses_base
-                    self.ema_lb = losses_base
-            # losses_base.backward()
-        except FloatingPointError:
-            losses_base = 0
-        storage.put_scalar("dynamic/l_b", losses_base)
-        # grad_base = flatten_grads(self.model).detach().clone()
-        # grad_base_norm = torch.norm(grad_base)
-        # storage.put_scalar("dynamic/g_b", grad_base_norm)
-        # with torch.no_grad():
-        #     self.ema_base = self.beta * self.ema_base + (1 - self.beta) * torch.norm(grad_base)
-        #     storage.put_scalar("dynamic/ema_base", self.ema_base)
+        loss_dict = self.model(data_base, is_base=True)
+        losses_base = sum(loss_dict.values())
+        losses_base.backward()
+        if self.iter == 0:
+            self.ema_lb0 = losses_base
+            self.ema_lb = losses_base
+        storage.put_scalar("dynamic/loss_b", losses_base)
+        grad_base = flatten_grads(self.model).detach().clone()
 
-        # general_converge = self.alpha * (self.ema_loss - self.c) / self.ema_loss
-        # storage.put_scalar("dynamic/general_converge", general_converge)
-        #
-        # angle = self.epsilon - torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
-        #
-        # storage.put_scalar("dynamic/angle", angle)
-        #
-        # dynamic_lambda = max(general_converge, angle)
-        # storage.put_scalar("dynamic/lambda", dynamic_lambda)
-        # if self.iter < 50:
-        #     ratio = 1
-        #     self.mean_novel += losses_novel
-        #     self.mean_base += losses_base
-        # else:
-        # ratio = (losses_novel / losses_base) * 3 * (grad_base_norm / grad_novel_norm)
         with torch.no_grad():
-            self.ema_lb = self.beta * self.ema_lb + (1 - self.beta) * losses_base
+            # self.ema_lb = self.beta * self.ema_lb + (1 - self.beta) * losses_base
             self.ema_lb_old = self.beta * self.ema_lb_old + (1 - self.beta) * losses_base
-            dynamic = 3 * (self.ema_lb_old - 0.2) / self.ema_lb_old
-            ratio =  (1 - self.ema_lb / self.ema_lb0) ** 3
-        # loss = ratio * losses_novel + losses_base
-        loss = dynamic * losses_base + losses_novel
-        storage.put_scalar("dynamic/ema_lb", self.ema_lb)
-        storage.put_scalar("dynamic/ema_lb_old", self.ema_lb_old)
-        storage.put_scalar("dynamic/ratio", ratio)
-        storage.put_scalar("dynamic/1/ratio", 1 / ratio)
-        storage.put_scalar("dynamic/dynamic", dynamic)
-        print("[l_n]:%.4f [l_b]:%.4f [ema_b]:%.4f [ema_lb_old]:%.4f [ratio]:%.4f [1/ratio]:%.4f [dynamic]:%.4f [diff]:%.4f" %
-                  (losses_novel, losses_base, self.ema_lb, self.ema_lb_old, ratio, 1 / ratio, dynamic, 1 / ratio - dynamic))
-        loss.backward()
-        # self.model = assign_grads(self.model, new_grad)
-        self.optimizer.step()
+            general_converge = 3 * (self.ema_lb_old - 0.2) / self.ema_lb_old
+            # general_converge = (1 - math.tanh(self.ema_lb - 0.2) / math.tanh(self.ema_lb0 - 0.2)) ** 2
+            # general_converge = 1
+            # angle_novel = torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
+            angle_base = 1 - torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
+            # grad_novel = grad_novel - grad_base * angle_novel
+            dynamic_lambda = max(general_converge, angle_base)
+            # grad_novel = general_converge * grad_novel
+            # grad_novel = dynamic_lambda * grad_novel
+            # if torch.dot(grad_base, grad_novel) < 0:
+            # print("here!")
+            # grad_novel = 0
+            # else:
+            # grad_novel = grad_novel * general_converge
+            # grad_base = grad_base * general_converge
+            # if random.random() <= 0.15:
+            #     dynamic = 0
+            # else:
+            #     dynamic = general_converge
+            # dynamic_lambda = max(general_converge, angle)
+            # dynamic_lambda = max(1, angle)
+            # dynamic_lambda = angle
+            grad_base = dynamic_lambda * grad_base
+        # # storage.put_scalar("dynamic/lambda", dynamic_lambda)
+
+        # storage.put_scalar("dynamic/ema_lb", self.ema_lb)
+        # storage.put_scalar("dynamic/ema_lb_old", self.ema_lb_old)
+        # storage.put_scalar("dynamic/ratio", ratio)
+        # storage.put_scalar("dynamic/1/ratio", 1 / ratio)
+        # storage.put_scalar("dynamic/dynamic", dynamic)
+        # print("[l_n]:%.4f [l_b]:%.4f [ema_b]:%.4f" % (losses_novel, losses_base, self.ema_lb))
+        # if dynamic == 0:
+        #     print("[l_n]:%.4f [l_b]:%.4f [ema_b]:%.4f [ratio]:%.4f [1/ratio]:+inf" %
+        #           (losses_novel, losses_base, self.ema_lb, dynamic))
+        # else:
+        #     print("[l_n]:%.4f [l_b]:%.4f [ema_b]:%.4f [ratio]:%.4f [1/ratio]:%.4f" %
+        #           (losses_novel, losses_base, self.ema_lb, dynamic, 1/dynamic))
+        new_grad = grad_base + grad_novel
+        try:
+            self.model = assign_grads(self.model, new_grad)
+            self.optimizer.step()
+        except:
+            print("eoor")

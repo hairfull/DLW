@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/new_dynamic/2024_03_22_01_00/lr0.02/
+SAVE_DIR=checkpoints/new_dynamic/2024_04_11_13_00/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
 SPLIT_ID=1 #先做一个split

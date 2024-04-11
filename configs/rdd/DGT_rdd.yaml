@@ -31,7 +31,7 @@ DATASETS:
 DATALOADER:
     NUM_WORKERS: 0
 SOLVER:
-  IMS_PER_BATCH: 8
+  IMS_PER_BATCH: 16
   # 调一下
   BASE_LR: 0.02
   # 调一下,后期根据不同shot要调
