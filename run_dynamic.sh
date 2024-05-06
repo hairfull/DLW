@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/new_dynamic/2024_04_11_13_00/
+SAVE_DIR=checkpoints/new_dynamic/2024_04_25_23_00/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
-SPLIT_ID=1 #先做一个split
+seed=1
 DATASET=rdd
 
-for seed in 1
+for SPLIT_ID in 1
 do
-    for shot in 3
+    for shot in 5 10
     do
         python3 tools/create_config.py --dataset ${DATASET} --config_root configs/${DATASET}               \
             --shot ${shot} --seed ${seed} --split ${SPLIT_ID}

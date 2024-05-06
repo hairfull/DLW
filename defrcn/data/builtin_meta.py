@@ -162,37 +162,31 @@ COCO_NOVEL_CATEGORIES = [
 # PASCAL VOC categories
 PASCAL_VOC_ALL_CATEGORIES = {
     1: ["D00", "D40", "D44", "D10", "D20",
-        "D50", "D43", "Repair", "D01","D11",
+        "D50", "D43", "Repair", "D01",
     ],
-    2: ["bicycle", "bird", "boat", "bus", "car",
-        "cat", "chair", "diningtable", "dog", "motorbike",
-        "person", "pottedplant", "sheep", "train", "tvmonitor",
-        "aeroplane", "bottle", "cow", "horse", "sofa",
+    2: ["D00", "D40", "D44", "D10", "D20",
+        "D50", "D43", "Repair", "D11",
     ],
-    3: ["aeroplane", "bicycle", "bird", "bottle", "bus",
-        "car", "chair", "cow", "diningtable", "dog",
-        "horse", "person", "pottedplant", "train", "tvmonitor",
-        "boat", "cat", "motorbike", "sheep", "sofa",
+    3: ["D00", "D40", "D44", "D10", "D20",
+        "D50", "D43", "D01","D11",
     ],
 }
 
 PASCAL_VOC_NOVEL_CATEGORIES = {
-    1: ["D43", "Repair", "D01","D11",],
-    2: ["aeroplane", "bottle", "cow", "horse", "sofa"],
-    3: ["boat", "cat", "motorbike", "sheep", "sofa"],
+    1: ["D43", "Repair", "D01",],
+    2: ["D43", "Repair", "D11",],
+    3: ["D43", "D01","D11",],
 }
 
 PASCAL_VOC_BASE_CATEGORIES = {
     1: ["D00", "D40", "D44", "D10", "D20",
         "D50",
     ],
-    2: ["bicycle", "bird", "boat", "bus", "car",
-        "cat", "chair", "diningtable", "dog", "motorbike",
-        "person", "pottedplant", "sheep", "train", "tvmonitor",
+    2: ["D00", "D40", "D44", "D10", "D20",
+        "D50",
     ],
-    3: ["aeroplane", "bicycle", "bird", "bottle", "bus",
-        "car", "chair", "cow", "diningtable", "dog",
-        "horse", "person", "pottedplant", "train", "tvmonitor",
+    3: ["D00", "D40", "D44", "D10", "D20",
+        "D50",
     ],
 }
 

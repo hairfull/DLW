@@ -1,5 +1,6 @@
 import os
 import time
+import math
 import torch
 import logging
 import argparse
@@ -124,7 +125,7 @@ def default_setup(cfg, args):
         logger.info("Full config saved to {}".format(os.path.abspath(path)))
 
     # make sure each worker has a different, yet deterministic seed if specified
-    seed_all_rng(None if cfg.SEED < 0 else cfg.SEED + rank)
+    seed_all_rng(35891103)
 
     # cudnn benchmark has large overhead. It shouldn't be used considering the small size of
     # typical validation set.
@@ -167,15 +168,16 @@ def flatten_grads(model):
             all_grads.append(param.grad.view(-1))
     return torch.cat(all_grads)
 
-def setup_base_cfg():
+def setup_base_cfg(split):
     cfg = get_cfg()
-    cfg.merge_from_file('/home/wxq/od/DeFRCN/configs/rdd/defrcn_det_r101_base1.yaml')
+    cfg.merge_from_file(f'/home/wxq/od/DeFRCN/configs/rdd/defrcn_det_r101_base{split}.yaml')
     cfg.DATALOADER.NUM_WORKERS = 0
     cfg.freeze()
     return cfg
 
 
 class DefaultPredictor:
+    ## 应该没啥用
     """
     Create a simple end-to-end predictor with the given config.
     The predictor takes an BGR image, resizes it to the specified resolution,
@@ -341,15 +343,16 @@ class DefaultTrainer(SimpleTrainer):
         super().__init__(model, data_loader, optimizer)
 
         # base
-        base_cfg = setup_base_cfg()
+        split = int(cfg.DATASETS.TEST[0][-1])
+        base_cfg = setup_base_cfg(split)
         self.base_loader = self.build_train_loader(base_cfg)
         self._base_loader_iter = iter(self.base_loader)
 
         # parameter
-        # self.alpha = cfg.DYNAMIC.ALPHA
+        self.alpha = cfg.DYNAMIC.ALPHA
         self.beta = cfg.DYNAMIC.BETA
         # self.epsilon = cfg.DYNAMIC.EPSILON
-        # self.c = cfg.DYNAMIC.C
+        self.c = cfg.DYNAMIC.C
         self.ema_lb0 = 0
         self.ema_lb = 0
         self.ema_lb_old = 0.45
@@ -479,7 +482,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             OrderedDict of results, if evaluation is enabled. Otherwise None.
         """
-        super().train(self.start_iter, self.max_iter)
+        super().train(self.start_iter, 8000)
         if hasattr(self, "_last_eval_results") and comm.is_main_process():
             verify_results(self.cfg, self._last_eval_results)
             return self._last_eval_results
@@ -615,7 +618,7 @@ class DefaultTrainer(SimpleTrainer):
         """
         Implement the standard training logic described above.
         """
-        if self.iter > 8000:
+        if self.iter > 10000:
             return
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
         storage = get_event_storage()
@@ -623,10 +626,7 @@ class DefaultTrainer(SimpleTrainer):
 
         # novel
         data = next(self._data_loader_iter)
-        try:
-            loss_dict = self.model(data, is_base=False)
-        except:
-            return
+        loss_dict = self.model(data, is_base=False)
         losses_novel = sum(loss_dict.values())  # 两种loss加起来算
         losses_novel.backward()
         storage.put_scalar("dynamic/loss_n", losses_novel)
@@ -646,22 +646,23 @@ class DefaultTrainer(SimpleTrainer):
         grad_base = flatten_grads(self.model).detach().clone()
 
         with torch.no_grad():
-            # self.ema_lb = self.beta * self.ema_lb + (1 - self.beta) * losses_base
-            self.ema_lb_old = self.beta * self.ema_lb_old + (1 - self.beta) * losses_base
-            general_converge = 3 * (self.ema_lb_old - 0.2) / self.ema_lb_old
-            # general_converge = (1 - math.tanh(self.ema_lb - 0.2) / math.tanh(self.ema_lb0 - 0.2)) ** 2
+            self.ema_lb = self.beta * self.ema_lb + (1 - self.beta) * losses_base
+            # self.ema_lb_old = self.beta * self.ema_lb_old + (1 - self.beta) * losses_base
+            # general_converge = self.alpha * (self.ema_lb_old - self.c) / self.ema_lb_old
+            general_converge = (1 - math.tanh(self.ema_lb - 0.2) / math.tanh(self.ema_lb0 - 0.2)) ** 2
+            # general_converge = (1 - math.tanh(self.ema_lb) / math.tanh(self.ema_lb0)) ** 2
             # general_converge = 1
             # angle_novel = torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
-            angle_base = 1 - torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
+            # angle_base = 1 - torch.dot(grad_base, grad_novel) / torch.square(torch.norm(grad_base))
             # grad_novel = grad_novel - grad_base * angle_novel
-            dynamic_lambda = max(general_converge, angle_base)
+            # dynamic_lambda = max(general_converge, angle_base)
             # grad_novel = general_converge * grad_novel
             # grad_novel = dynamic_lambda * grad_novel
             # if torch.dot(grad_base, grad_novel) < 0:
             # print("here!")
             # grad_novel = 0
             # else:
-            # grad_novel = grad_novel * general_converge
+            grad_novel = grad_novel * general_converge
             # grad_base = grad_base * general_converge
             # if random.random() <= 0.15:
             #     dynamic = 0
@@ -670,7 +671,7 @@ class DefaultTrainer(SimpleTrainer):
             # dynamic_lambda = max(general_converge, angle)
             # dynamic_lambda = max(1, angle)
             # dynamic_lambda = angle
-            grad_base = dynamic_lambda * grad_base
+            # grad_base = dynamic_lambda * grad_base
         # # storage.put_scalar("dynamic/lambda", dynamic_lambda)
 
         # storage.put_scalar("dynamic/ema_lb", self.ema_lb)
@@ -686,8 +687,5 @@ class DefaultTrainer(SimpleTrainer):
         #     print("[l_n]:%.4f [l_b]:%.4f [ema_b]:%.4f [ratio]:%.4f [1/ratio]:%.4f" %
         #           (losses_novel, losses_base, self.ema_lb, dynamic, 1/dynamic))
         new_grad = grad_base + grad_novel
-        try:
-            self.model = assign_grads(self.model, new_grad)
-            self.optimizer.step()
-        except:
-            print("eoor")
+        self.model = assign_grads(self.model, new_grad)
+        self.optimizer.step()

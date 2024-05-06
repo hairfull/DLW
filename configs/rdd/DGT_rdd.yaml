@@ -27,7 +27,7 @@ INPUT:
 DATASETS:
   #???
   TRAIN: ('rdd_trainval_novelx_xshot_seedx',)
-  TEST: ('rdd_test',)
+  TEST: ('rdd_test_x',)
 DATALOADER:
     NUM_WORKERS: 0
 SOLVER:

@@ -62,6 +62,8 @@ def main():
             # 逆天，设成'train'还真会出错
             if '  TRAIN: ' in lineinfo:
                 yaml_info[i] = f'  TRAIN: ("rdd_trainval_novel{args.split}_{args.shot}shot_seed{args.seed}", )\n'
+            if '  TEST: ' in lineinfo:
+                yaml_info[i] = f'  TEST: ("rdd_test_{args.split}",)\n'
         yaml_path = f'{args.config_root}/DGT_rdd_split{args.split}_{args.shot}shot_seed{args.seed}.yaml'
     else:
         raise NotImplementedError

@@ -26,7 +26,7 @@ INPUT:
   MIN_SIZE_TEST: 800
 DATASETS:
   #???
-  TRAIN: ("rdd_trainval_novel1_3shot_seed6", )
+  TRAIN: ("rdd_trainval_novel1_3shot_seed2", )
   TEST: ('rdd_test',)
 DATALOADER:
     NUM_WORKERS: 0

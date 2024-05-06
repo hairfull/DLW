@@ -7,7 +7,7 @@ import os
 import random
 import xml.etree.ElementTree as ET
 
-# 40 FSOD classes
+# 10 FSOD classes
 VOC_CLASSES = ['D00', 'D40', 'D44', 'D10', 'D20', 'D50', 'D43',
                'Repair', 'D01','D11',]
 
