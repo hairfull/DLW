@@ -5,8 +5,6 @@ import torch
 import logging
 import detectron2
 import numpy as np
-import random
-from matplotlib import pyplot as plt
 from detectron2.structures import ImageList
 from detectron2.modeling.poolers import ROIPooler
 from sklearn.metrics.pairwise import cosine_similarity
@@ -27,7 +25,7 @@ class PrototypicalCalibrationBlock:
         self.imagenet_model = self.build_model()
         self.dataloader = build_detection_test_loader(self.cfg, self.cfg.DATASETS.TRAIN[0])
         self.roi_pooler = ROIPooler(output_size=(1, 1), scales=(1 / 32,), sampling_ratio=(0), pooler_type="ROIAlignV2")
-        self.prototypes_1, self.prototypes_2, self.prototypes_3, self.prototypes_4 = self.build_prototypes()
+        self.prototypes = self.build_prototypes()
 
         self.exclude_cls = self.clsid_filter()
 
@@ -45,7 +43,7 @@ class PrototypicalCalibrationBlock:
 
     def build_prototypes(self):
 
-        all_features_1, all_features_2, all_features_3, all_features_4, all_labels = [], [], [], [], []
+        all_features, all_labels = [], []
         for index in range(len(self.dataloader.dataset)):
             inputs = [self.dataloader.dataset[index]]
             assert len(inputs) == 1
@@ -57,26 +55,16 @@ class PrototypicalCalibrationBlock:
             boxes = [x["instances"].gt_boxes.to(self.device) for x in inputs]
 
             # extract roi features
-            with torch.no_grad():
-                features = self.extract_roi_features(img, boxes)
-            all_features_4.append(features[0].cpu().data)
-            all_features_3.append(features[1].cpu().data)
-            all_features_2.append(features[2].cpu().data)
-            all_features_1.append(features[3].cpu().data)
+            features = self.extract_roi_features(img, boxes)
+            all_features.append(features.cpu().data)
 
             gt_classes = [x['instances'].gt_classes for x in inputs]
             all_labels.append(gt_classes[0].cpu().data)
 
         # concat
-        all_features_4 = torch.cat(all_features_4, dim=0)
-        all_features_3 = torch.cat(all_features_3, dim=0)
-        all_features_2 = torch.cat(all_features_2, dim=0)
-        all_features_1 = torch.cat(all_features_1, dim=0)
+        all_features = torch.cat(all_features, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
-        assert all_features_4.shape[0] == all_labels.shape[0]
-        assert all_features_3.shape[0] == all_labels.shape[0]
-        assert all_features_2.shape[0] == all_labels.shape[0]
-        assert all_features_1.shape[0] == all_labels.shape[0]
+        assert all_features.shape[0] == all_labels.shape[0]
 
         # calculate prototype
         features_dict = {}
@@ -84,92 +72,14 @@ class PrototypicalCalibrationBlock:
             label = int(label)
             if label not in features_dict:
                 features_dict[label] = []
-            features_dict[label].append(all_features_4[i].unsqueeze(0))
+            features_dict[label].append(all_features[i].unsqueeze(0))
 
-        prototypes_dict_4 = {}
+        prototypes_dict = {}
         for label in features_dict:
             features = torch.cat(features_dict[label], dim=0)
-            prototypes_dict_4[label] = torch.mean(features, dim=0, keepdim=True)
+            prototypes_dict[label] = torch.mean(features, dim=0, keepdim=True)
 
-        # calculate prototype
-        features_dict = {}
-        for i, label in enumerate(all_labels):
-            label = int(label)
-            if label not in features_dict:
-                features_dict[label] = []
-            features_dict[label].append(all_features_3[i].unsqueeze(0))
-
-        prototypes_dict_3 = {}
-        for label in features_dict:
-            features = torch.cat(features_dict[label], dim=0)
-            prototypes_dict_3[label] = torch.mean(features, dim=0, keepdim=True)
-
-        # calculate prototype
-        features_dict = {}
-        for i, label in enumerate(all_labels):
-            label = int(label)
-            if label not in features_dict:
-                features_dict[label] = []
-            features_dict[label].append(all_features_2[i].unsqueeze(0))
-
-        prototypes_dict_2 = {}
-        for label in features_dict:
-            features = torch.cat(features_dict[label], dim=0)
-            prototypes_dict_2[label] = torch.mean(features, dim=0, keepdim=True)
-
-        # calculate prototype
-        features_dict = {}
-        for i, label in enumerate(all_labels):
-            label = int(label)
-            if label not in features_dict:
-                features_dict[label] = []
-            features_dict[label].append(all_features_1[i].unsqueeze(0))
-
-        prototypes_dict_1 = {}
-        for label in features_dict:
-            features = torch.cat(features_dict[label], dim=0)
-            prototypes_dict_1[label] = torch.mean(features, dim=0, keepdim=True)
-
-        # T-SNE
-        # i = 1
-        # for layer_feat in [all_features_1,all_features_2,all_features_3,all_features_4]:
-        #     feat = layer_feat.cpu().data.numpy()
-        #     feat_label = all_labels.cpu().data.numpy()
-        #     ts = TSNE(n_components=2, init='pca', random_state=0)
-        #     feat = ts.fit_transform(feat)
-        #     fig = self.plot_embedding(feat, feat_label, 'T-SNE of RoI features')
-        #     fig_path ='/home/Users/RDD-main/DeFRCN-main/TSNE_figure/tsne{}.svg'.format(i)
-        #     plt.savefig(fig_path, format='svg', bbox_inches='tight')
-        #     i+=1
-        # quit()
-
-        return prototypes_dict_1, prototypes_dict_2, prototypes_dict_3, prototypes_dict_4
-
-    def plot_embedding(self, data, label, title, show=None):
-        if show is not None:
-            temp = [i for i in range(len(data))]
-            random.shuffle(temp)
-            data = data[temp]
-            data = data[:show]
-            label = torch.tensor(label)[temp]
-            label = label[:show]
-            label.numpy().tolist()
-
-        x_min, x_max = np.min(data, 0), np.max(data, 0)
-        data = (data - x_min)/(x_max - x_min)
-        fig = plt.figure()
-
-        data = data.tolist()
-        label = label.squeeze().tolist()
-
-        for i in range(len(data)):
-            la = str(label[i])
-            lz = label[i]
-            if lz in range(3):
-                plt.text(data[i][0], data[i][1], la, fontsize=6, backgroundcolor=plt.cm.tab10((label[i])/10))
-            # plt.plot(data[i][0], data[i][1])
-        plt.title(title, fontsize=12)
-        return fig
+        return prototypes_dict
 
     def extract_roi_features(self, img, boxes):
         """
@@ -185,17 +95,11 @@ class PrototypicalCalibrationBlock:
         images = [(img / 255. - mean) / std]
         images = ImageList.from_tensors(images, 0)
         conv_feature = self.imagenet_model(images.tensor[:, [2, 1, 0]])[1]  # size: BxCxHxW
-        # con_feature包含四层的输出，是个长度为4的list
-        # cov_feature4 = self.imagenet_model(images.tensor[:, [2, 1, 0]])['layer4']
-        box_features_layer1 = self.roi_pooler([conv_feature[0]],boxes).squeeze(2).squeeze(2)
-        box_features_layer2 = self.roi_pooler([conv_feature[1]],boxes).squeeze(2).squeeze(2)
-        box_features_layer3 = self.roi_pooler([conv_feature[2]],boxes).squeeze(2).squeeze(2)
-        box_features_layer4 = self.roi_pooler([conv_feature[3]],boxes).squeeze(2).squeeze(2)
-        box_features_layer4 = self.imagenet_model.fc(box_features_layer4)
-        activation_vectors = list([box_features_layer4, box_features_layer3, box_features_layer2, box_features_layer1])
 
-        # box_features = self.roi_pooler([conv_feature], boxes).squeeze(2).squeeze(2)
-        # activation_vectors = self.imagenet_model.fc(box_features)
+        box_features = self.roi_pooler([conv_feature], boxes).squeeze(2).squeeze(2)
+
+        activation_vectors = self.imagenet_model.fc(box_features)
+
         return activation_vectors
 
     def execute_calibration(self, inputs, dts):
@@ -213,16 +117,8 @@ class PrototypicalCalibrationBlock:
             tmp_class = int(dts[0]['instances'].pred_classes[i])
             if tmp_class in self.exclude_cls:
                 continue
-            tmp_cos_1 = cosine_similarity(features[3][i - ileft].cpu().data.numpy().reshape((1, -1)),
-                                          self.prototypes_1[tmp_class].cpu().data.numpy())[0][0]
-            tmp_cos_2 = cosine_similarity(features[2][i - ileft].cpu().data.numpy().reshape((1, -1)),
-                                          self.prototypes_2[tmp_class].cpu().data.numpy())[0][0]
-            tmp_cos_3 = cosine_similarity(features[1][i - ileft].cpu().data.numpy().reshape((1, -1)),
-                                        self.prototypes_3[tmp_class].cpu().data.numpy())[0][0]
-            tmp_cos_4 = cosine_similarity(features[0][i - ileft].cpu().data.numpy().reshape((1, -1)),
-                                        self.prototypes_4[tmp_class].cpu().data.numpy())[0][0]
-            tmp_cos = (tmp_cos_1 + tmp_cos_2 + tmp_cos_3 + tmp_cos_4)/4
-            # tmp_cos = tmp_cos_4
+            tmp_cos = cosine_similarity(features[i - ileft].cpu().data.numpy().reshape((1, -1)),
+                                        self.prototypes[tmp_class].cpu().data.numpy())[0][0]
             dts[0]['instances'].scores[i] = dts[0]['instances'].scores[i] * self.alpha + tmp_cos * (1 - self.alpha)
         return dts
 
@@ -231,7 +127,10 @@ class PrototypicalCalibrationBlock:
         exclude_ids = []
         if 'test_all' in dsname:
             if 'coco' in dsname:
-                exclude_ids = list(range(0, 6))
+                exclude_ids = [7, 9, 10, 11, 12, 13, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                               30, 31, 32, 33, 34, 35, 36, 37, 38, 40, 41, 42, 43, 44, 45,
+                               46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 59, 61, 63, 64, 65,
+                               66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79]
             elif 'voc' in dsname:
                 exclude_ids = list(range(0, 6))
             else:

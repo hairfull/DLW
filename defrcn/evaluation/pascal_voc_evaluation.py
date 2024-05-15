@@ -36,6 +36,8 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         # add this two terms for calculating the mAP of different subset
         self._base_classes = meta.base_classes
         self._novel_classes = meta.novel_classes
+        assert meta.year in [2007, 2012], meta.year
+        self._is_2007 = meta.year == 2007
         self._cpu_device = torch.device("cpu")
         self._logger = logging.getLogger(__name__)
 
@@ -73,8 +75,10 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         del all_predictions
 
         self._logger.info(
-            "Evaluating rdd. "
-            "Note that results do not use the official Matlab API."
+            "Evaluating {} using {} metric. "
+            "Note that results do not use the official Matlab API.".format(
+                self._dataset_name, 2007 if self._is_2007 else 2012
+            )
         )
 
         with tempfile.TemporaryDirectory(prefix="pascal_voc_eval_") as dirname:
@@ -97,6 +101,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                         self._image_set_path,
                         cls_name,
                         ovthresh=thresh / 100.0,
+                        use_07_metric=self._is_2007,
                     )
                     aps[thresh].append(ap * 100)
 
@@ -130,8 +135,8 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         # write per class AP to logger
         per_class_res = {self._class_names[idx]: ap for idx, ap in enumerate(aps[50])}
 
-        self._logger.info("Evaluate per-class mAP50:\n" + create_small_table(per_class_res))
-        self._logger.info("Evaluate overall bbox:\n" + create_small_table(ret["bbox"]))
+        self._logger.info("Evaluate per-class mAP50:\n"+create_small_table(per_class_res))
+        self._logger.info("Evaluate overall bbox:\n"+create_small_table(ret["bbox"]))
         return ret
 
 
@@ -156,28 +161,22 @@ def parse_rec(filename):
     for obj in tree.findall("object"):
         obj_struct = {}
         obj_struct["name"] = obj.find("name").text
-        # obj_struct["pose"] = obj.find("pose").text
-        # obj_struct["truncated"] = int(obj.find("truncated").text)
-        # obj_struct["difficult"] = int(obj.find("difficult").text)
+        obj_struct["pose"] = obj.find("pose").text
+        obj_struct["truncated"] = int(obj.find("truncated").text)
+        obj_struct["difficult"] = int(obj.find("difficult").text)
         bbox = obj.find("bndbox")
         obj_struct["bbox"] = [
-            int(float(bbox.find("xmin").text)),
-            int(float(bbox.find("ymin").text)),
-            int(float(bbox.find("xmax").text)),
-            int(float(bbox.find("ymax").text)),
+            int(bbox.find("xmin").text),
+            int(bbox.find("ymin").text),
+            int(bbox.find("xmax").text),
+            int(bbox.find("ymax").text),
         ]
-        try:
-            difficult = int(obj.find("difficult").text)
-            if difficult != 0:
-                continue
-        except:
-            difficult = 0
         objects.append(obj_struct)
 
     return objects
 
 
-def voc_ap(rec, prec, use_07_metric=True):
+def voc_ap(rec, prec, use_07_metric=False):
     """Compute VOC AP given precision and recall. If use_07_metric is true, uses
     the VOC 07 11-point method (default:False).
     """
@@ -209,7 +208,7 @@ def voc_ap(rec, prec, use_07_metric=True):
     return ap
 
 
-def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5):
+def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_metric=False):
     """rec, prec, ap = voc_eval(detpath,
                                 annopath,
                                 imagesetfile,
@@ -227,7 +226,7 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5):
     classname: Category name (duh)
     [ovthresh]: Overlap threshold (default = 0.5)
     [use_07_metric]: Whether to use VOC07's 11 point AP computation
-        (default True)
+        (default False)
     """
     # assumes detections are in detpath.format(classname)
     # assumes annotations are in annopath.format(imagename)
@@ -246,15 +245,15 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5):
 
     # extract gt objects for this class
     class_recs = {}
-    # npos = 0
+    npos = 0
     for imagename in imagenames:
         R = [obj for obj in recs[imagename] if obj["name"] == classname]
         bbox = np.array([x["bbox"] for x in R])
-        # difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
+        difficult = np.array([x["difficult"] for x in R]).astype(np.bool)
         # difficult = np.array([False for x in R]).astype(np.bool)  # treat all "difficult" as GT
         det = [False] * len(R)
-        # npos = npos + sum(~difficult)
-        class_recs[imagename] = {"bbox": bbox, "det": det}
+        npos = npos + sum(~difficult)
+        class_recs[imagename] = {"bbox": bbox, "difficult": difficult, "det": det}
 
     # read dets
     detfile = detpath.format(classname)
@@ -294,9 +293,9 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5):
 
             # union
             uni = (
-                    (bb[2] - bb[0] + 1.0) * (bb[3] - bb[1] + 1.0)
-                    + (BBGT[:, 2] - BBGT[:, 0] + 1.0) * (BBGT[:, 3] - BBGT[:, 1] + 1.0)
-                    - inters
+                (bb[2] - bb[0] + 1.0) * (bb[3] - bb[1] + 1.0)
+                + (BBGT[:, 2] - BBGT[:, 0] + 1.0) * (BBGT[:, 3] - BBGT[:, 1] + 1.0)
+                - inters
             )
 
             overlaps = inters / uni
@@ -304,21 +303,22 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5):
             jmax = np.argmax(overlaps)
 
         if ovmax > ovthresh:
-            if not R["det"][jmax]:
-                tp[d] = 1.0
-                R["det"][jmax] = 1
-            else:
-                fp[d] = 1.0
+            if not R["difficult"][jmax]:
+                if not R["det"][jmax]:
+                    tp[d] = 1.0
+                    R["det"][jmax] = 1
+                else:
+                    fp[d] = 1.0
         else:
             fp[d] = 1.0
 
     # compute precision recall
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
-    rec = tp / float(len(R))
+    rec = tp / float(npos)
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth
     prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-    ap = voc_ap(rec, prec)
+    ap = voc_ap(rec, prec, use_07_metric)
 
     return rec, prec, ap
