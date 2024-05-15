@@ -41,8 +41,9 @@ def main():
                 _str_ = '  TRAIN: ("rdd_trainval_{}{}_{}shot_seed{}", )\n'
                 yaml_info[i] = _str_.format(suffix, args.split, args.shot, args.seed)
             if '  TEST: ' in lineinfo:
-                yaml_info[i] = f'  TEST: ("rdd_test_{args.split}",)\n'
-        yaml_path = f'{args.config_root}/DGT_rdd_split{args.split}_{args.shot}shot_seed{args.seed}.yaml'
+                _str_ = '  TEST: ("rdd_test_{}",)\n'
+                yaml_info[i] = _str_.format(args.split)
+        yaml_path = yaml_path.replace('novelx', 'novel{}'.format(args.split))
     else:
         raise NotImplementedError
 
