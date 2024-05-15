@@ -41,17 +41,8 @@ def main():
                 _str_ = '  TRAIN: ("rdd_trainval_{}{}_{}shot_seed{}", )\n'
                 yaml_info[i] = _str_.format(suffix, args.split, args.shot, args.seed)
             if '  TEST: ' in lineinfo:
-                _str_ = '  TEST: ("rdd_test",)\n'
-                yaml_info[i] = _str_
-        yaml_path = yaml_path.replace('novelx', 'novel{}'.format(args.split))
-    elif args.dataset in ['coco14']:
-        name_template = 'defrcn_{}_r101_novel_{}shot_seedx.yaml'
-        yaml_path = os.path.join(args.config_root, name_template.format(args.setting, args.shot))
-        yaml_info = load_config_file(yaml_path)
-        for i, lineinfo in enumerate(yaml_info):
-            if '  TRAIN: ' in lineinfo:
-                _str_ = '  TRAIN: ("coco14_trainval_{}_{}shot_seed{}", )\n'
-                yaml_info[i] = _str_.format(suffix, args.shot, args.seed)
+                yaml_info[i] = f'  TEST: ("rdd_test_{args.split}",)\n'
+        yaml_path = f'{args.config_root}/DGT_rdd_split{args.split}_{args.shot}shot_seed{args.seed}.yaml'
     else:
         raise NotImplementedError
 
