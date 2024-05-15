@@ -4,13 +4,13 @@
 SAVE_DIR=checkpoints/cfa/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
-SPLIT_ID=1
+seed=1
 BASE_WEIGHT=checkpoints/rdd1/defrcn_det_r101_base1/model_reset_surgery.pth
 
 
 # ------------------------------ 2 step Novel Fine-tuning ------------------------------- #
 # --> 2. TFA-like, i.e. run seed0~9 for robust results (G-FSOD, 80 classes)
-for seed in 3 4 5 6 7 8 9
+for SPLIT_ID in 1 2 3
 do
     for shot in 1 2 3 5 10
     do

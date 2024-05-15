@@ -45,11 +45,14 @@ class GeneralizedRCNN(nn.Module):
                 p.requires_grad = False
             print("froze roi_box_head parameters")
 
-    def forward(self, batched_inputs):
+    def forward(self, batched_inputs, is_base=False):
         if not self.training:
             return self.inference(batched_inputs)
         assert "instances" in batched_inputs[0]
         gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
+        if not is_base:
+            for i in range(len(gt_instances)):
+                gt_instances[i]._fields['gt_classes'] = gt_instances[i]._fields['gt_classes'] + 6
         proposal_losses, detector_losses, _, _ = self._forward_once_(batched_inputs, gt_instances)
         losses = {}
         losses.update(detector_losses)

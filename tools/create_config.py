@@ -4,7 +4,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='coco14', help='', choices=['coco14', 'voc'])
+    parser.add_argument('--dataset', type=str, default='voc', help='', choices=['coco14', 'voc'])
     parser.add_argument('--config_root', type=str, default='', help='the path to config dir')
     parser.add_argument('--shot', type=int, default=1, help='shot to run experiments over')
     parser.add_argument('--seed', type=int, default=0, help='seed to run experiments over')
@@ -41,8 +41,7 @@ def main():
                 _str_ = '  TRAIN: ("rdd_trainval_{}{}_{}shot_seed{}", )\n'
                 yaml_info[i] = _str_.format(suffix, args.split, args.shot, args.seed)
             if '  TEST: ' in lineinfo:
-                _str_ = '  TEST: ("rdd_test",)\n'
-                yaml_info[i] = _str_
+                yaml_info[i] = f'  TEST: ("rdd_test_{args.split}",)\n'
         yaml_path = yaml_path.replace('novelx', 'novel{}'.format(args.split))
     elif args.dataset in ['coco14']:
         name_template = 'defrcn_{}_r101_novel_{}shot_seedx.yaml'

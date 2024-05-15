@@ -34,8 +34,12 @@ def register_all_coco(root="datasets"):
 def register_all_voc(root="datasets"):
 
     METASPLITS = [
-        ("rdd_trainval_base", "RDD", "trainval", "base1", 1),
-        ("rdd_test", "RDD", "test", "base_novel_1", 1),
+        ("rdd_test_1", "RDD", "test", "base_novel_1", 1),
+        ("rdd_test_2", "RDD", "test", "base_novel_2", 2),
+        ("rdd_test_3", "RDD", "test", "base_novel_3", 3),
+        ("rdd_trainval_base_1", "RDD", "trainval", "base1", 1),
+        ("rdd_trainval_base_2", "RDD", "trainval", "base2", 2),
+        ("rdd_trainval_base_3", "RDD", "trainval", "base3", 3),
     ]
     for prefix in ["all", "novel"]:
         for sid in range(1, 4):
@@ -71,5 +75,5 @@ def register_all_voc(root="datasets"):
         MetadataCatalog.get(name).evaluator_type = "pascal_voc"
 
 
-register_all_coco()
+# register_all_coco()
 register_all_voc()

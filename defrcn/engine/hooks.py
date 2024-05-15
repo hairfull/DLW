@@ -37,8 +37,9 @@ class EvalHookDeFRCN(HookBase):
 
     def _do_eval(self):
         results = self._func()
-
-        if results:
+        # 结束训练再存ckpt，要不太占内存
+        is_final = self.trainer.iter + 1 >= self.trainer.max_iter
+        if results and is_final:
             assert isinstance(
                 results, dict
             ), "Eval function must return a dict. Got {} instead.".format(results)
@@ -56,7 +57,6 @@ class EvalHookDeFRCN(HookBase):
 
         if comm.is_main_process() and results:
             # save evaluation results in json
-            is_final = self.trainer.iter + 1 >= self.trainer.max_iter
             os.makedirs(
                 os.path.join(self.cfg.OUTPUT_DIR, 'inference'), exist_ok=True)
             output_file = 'res_final.json' if is_final else \
@@ -76,8 +76,8 @@ class EvalHookDeFRCN(HookBase):
 
     def after_train(self):
         # This condition is to prevent the eval from running after a failed training
-        if self.trainer.iter + 1 >= self.trainer.max_iter:
-            self._do_eval()
+        # if self.trainer.iter + 1 >= self.trainer.max_iter:
+        #     self._do_eval()
         # func is likely a closure that holds reference to the trainer
         # therefore we clean it to avoid circular reference in the end
         del self._func

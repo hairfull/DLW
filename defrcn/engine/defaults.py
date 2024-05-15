@@ -13,7 +13,7 @@ from detectron2.utils.env import seed_all_rng
 from detectron2.utils.logger import setup_logger
 from detectron2.engine import hooks, SimpleTrainer
 from detectron2.utils.collect_env import collect_env_info
-from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter
+from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter, get_event_storage
 
 from defrcn.config import CfgNode, get_cfg
 from defrcn.data import *
@@ -166,9 +166,9 @@ def flatten_grads(model):
             all_grads.append(param.grad.view(-1))
     return torch.cat(all_grads)
 
-def setup_base_cfg():
+def setup_base_cfg(split):
     cfg = get_cfg()
-    cfg.merge_from_file('/home/wxq/od/DeFRCN/configs/rdd/defrcn_det_r101_base1.yaml')
+    cfg.merge_from_file(f'/home/wxq/od/DeFRCN/configs/rdd/defrcn_det_r101_base{split}.yaml')
     cfg.DATALOADER.NUM_WORKERS = 0
     cfg.freeze()
     return cfg
@@ -303,7 +303,9 @@ class DefaultTrainer(SimpleTrainer):
             )
         super().__init__(model, data_loader, optimizer)
 
-        base_cfg = setup_base_cfg()
+        # base
+        split = int(cfg.DATASETS.TEST[0][-1])
+        base_cfg = setup_base_cfg(split)
         self.base_loader = self.build_train_loader(base_cfg)
         self._base_loader_iter = iter(self.base_loader)
 
@@ -432,7 +434,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             OrderedDict of results, if evaluation is enabled. Otherwise None.
         """
-        super().train(self.start_iter, self.max_iter)
+        super().train(self.start_iter, 8000)
         if hasattr(self, "_last_eval_results") and comm.is_main_process():
             verify_results(self.cfg, self._last_eval_results)
             return self._last_eval_results
@@ -569,23 +571,25 @@ class DefaultTrainer(SimpleTrainer):
         Implement the standard training logic described above.
         """
         assert self.model.training, "[SimpleTrainer] model was changed to eval mode!"
-        start = time.perf_counter()
+        storage = get_event_storage()
         self.optimizer.zero_grad()
 
-        # few shot
+        # novel
         data = next(self._data_loader_iter)
-        data_time = time.perf_counter() - start
-        loss_dict = self.model(data)
-        self._write_metrics(loss_dict, data_time)
-        losses = sum(loss_dict.values()) # 两种loss加起来算
-        losses.backward()
+        loss_dict = self.model(data, is_base=False)
+        losses_novel = sum(loss_dict.values())  # 两种loss加起来算
+        losses_novel.backward()
+        storage.put_scalar("dynamic/loss_n", losses_novel)
         grad_novel = flatten_grads(self.model).detach().clone()
 
         self.optimizer.zero_grad()
+
+        # base
         data_base = next(self._base_loader_iter)
-        loss_dict = self.model(data_base)
-        losses = sum(loss_dict.values())
-        losses.backward()
+        loss_dict = self.model(data_base, is_base=True)
+        losses_base = sum(loss_dict.values())
+        losses_base.backward()
+        storage.put_scalar("dynamic/loss_b", losses_base)
         grad_base = flatten_grads(self.model).detach().clone()
 
         if torch.dot(grad_base, grad_novel) < 0:
