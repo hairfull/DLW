@@ -193,26 +193,21 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        # print(f"resnet forward 1 {GPUtil.getGPUs()[0].memoryUsed}")
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        # print(f"resnet forward 2 {GPUtil.getGPUs()[0].memoryUsed}")
-        x1 = self.layer1(x)
-        x2 = self.layer2(x1)
-        x3 = self.layer3(x2)
-        feature = self.layer4(x3)
-        # print(f"resnet forward 3 {GPUtil.getGPUs()[0].memoryUsed}")
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        feature = self.layer4(x)
+
         x = self.avgpool(feature)
         x = torch.flatten(x, 1)
         x = self.fc(x)
-        fpn_feats = list()
-        fpn_feats.append(x1)
-        fpn_feats.append(x2)
-        fpn_feats.append(x3)
-        fpn_feats.append(feature)
-        return x, fpn_feats
+
+        return x, feature
 
 
 def _resnet(arch, block, layers, pretrained, progress, **kwargs):

@@ -29,7 +29,7 @@ def save_config_file(yaml_info, yaml_path):
 
 def main():
     args = parse_args()
-    suffix = 'novel' if args.setting == 'fsod' else 'all'
+    suffix = 'novel'
 
     if args.dataset in ['voc']:
         # 都是拿x作为template的

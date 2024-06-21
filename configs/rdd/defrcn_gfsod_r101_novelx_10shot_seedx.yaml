@@ -13,14 +13,14 @@ MODEL:
   ROI_HEADS:
     ENABLE_DECOUPLE: True
     BACKWARD_SCALE: 0.001
-    NUM_CLASSES: 10
+    NUM_CLASSES: 9
     FREEZE_FEAT: True
     CLS_DROPOUT: True
 INPUT:
   MIN_SIZE_TRAIN: (480, 512, 544, 576, 608, 640, 672, 704, 736, 768, 800)
   MIN_SIZE_TEST: 800
 DATASETS:
-  TRAIN: ("rdd_trainval_allx_10shot_seedx", )
+  TRAIN: ("rdd_trainval_novelx_10shot_seedx", )
   TEST: ('rdd_test',)
 DATALOADER:
   NUM_WORKERS: 0

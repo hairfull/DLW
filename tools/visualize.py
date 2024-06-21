@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 import os
 import cv2
 
-names = ['United_States_004761']
+names = ['Japan_012131']
 
 root = '../datasets/RDD'
 
@@ -16,14 +16,15 @@ for name in names:
     objects = []
     box_color = (255, 0, 255)
     for obj in tree.findall("object"):
-        bbox = obj.find("bndbox")
-        box = [
-            int(float(bbox.find("xmin").text)),
-            int(float(bbox.find("ymin").text)),
-            int(float(bbox.find("xmax").text)),
-            int(float(bbox.find("ymax").text)),
-            obj.find("name").text]
-        cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color=box_color, thickness=2)
-        cv2.putText(img, obj.find("name").text,
-                    (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), thickness=1)
-    cv2.imwrite(name+'.jpg', img)
+        if obj.find("name").text != 'D50':
+            bbox = obj.find("bndbox")
+            box = [
+                int(float(bbox.find("xmin").text)),
+                int(float(bbox.find("ymin").text)),
+                int(float(bbox.find("xmax").text)),
+                int(float(bbox.find("ymax").text)),
+                obj.find("name").text]
+            cv2.rectangle(img, (box[0]+5, box[1]+5), (box[2]-10, box[3]+4), color=box_color, thickness=2)
+            cv2.putText(img, obj.find("name").text,
+                        (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), thickness=1)
+    cv2.imwrite(name+'2.jpg', img)
