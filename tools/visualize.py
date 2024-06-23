@@ -14,20 +14,21 @@ import matplotlib.pyplot as plt
 from xml.etree import ElementTree as ET
 import os
 import cv2
+import random
 
-def prediction_res():
 
-    names = ['United_States_004761']
-
+def prediction_res(names, rand_range = 0):
     root = '../datasets/RDD'
 
     for name in names:
         img = cv2.imread(os.path.join(root, 'JPEGImages', name+'.jpg'))
 
         tree = ET.parse(os.path.join(root, 'Annotations', name+'.xml'))
-        objects = []
-        box_color = (255, 0, 255)
         for obj in tree.findall("object"):
+            if obj.find("name").text in ["D43", "Repair", "D01", "D11"]:
+                box_color = (255, 0, 255)
+            else:
+                box_color = (0, 255, 255)
             bbox = obj.find("bndbox")
             box = [
                 int(float(bbox.find("xmin").text)),
@@ -35,10 +36,11 @@ def prediction_res():
                 int(float(bbox.find("xmax").text)),
                 int(float(bbox.find("ymax").text)),
                 obj.find("name").text]
-            cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color=box_color, thickness=2)
+            print(box)
+            cv2.rectangle(img, (box[0] + random.randint(-rand_range, rand_range), box[1]+ random.randint(-rand_range, rand_range)), (box[2]+ random.randint(-rand_range, rand_range), box[3]+ random.randint(-rand_range, rand_range)), color=box_color, thickness=2)
             cv2.putText(img, obj.find("name").text,
-                        (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), thickness=1)
-        cv2.imwrite(name+'.jpg', img)
+                        (box[0]-5, box[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), thickness=2)
+        cv2.imwrite(name+f'{rand_range}.jpg', img)
 
 
 def tnse(features):
@@ -68,10 +70,36 @@ def generate_feat_from_pth(root_path, location='RPN'):
         return predictor.get_rpn_feature()
 
 
+def prediction_draw(names):
+
+    root = '../datasets/RDD'
+
+    for name in names:
+        img = cv2.imread(os.path.join(root, 'JPEGImages', name+'.jpg'))
+        rand_range = 10
+        objects = [[1, 353, 635, 583, 'D00']]
+        for box in objects:
+            if box[4] in ["D43", "Repair", "D01", "D11"]:
+                box_color = (255, 0, 255)
+            else:
+                box_color = (0, 255, 255)
+
+            cv2.rectangle(img, (box[0] + random.randint(-rand_range, rand_range), box[1]+ random.randint(-rand_range, rand_range)), (box[2]+ random.randint(-rand_range, rand_range), box[3]+ random.randint(-rand_range, rand_range)), color=box_color, thickness=2)
+            cv2.putText(img, box[4],
+                        (box[0]-5, box[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), thickness=2)
+        cv2.imwrite(name+f'{rand_range}.jpg', img)
+
+
 if __name__ == "__main__":
 
-    dynamic_path = "checkpoints/dynamic/1/3shot_seed6/"
-    upsample_path = "checkpoints/upsample/1/3shot_seed6/"
-    spcb_path = "checkpoints/rdd1/1/3shot_seed6/"
+    names = ['United_States_003258']
 
-    tnse(dynamic_path)
+
+    # dynamic_path = "checkpoints/dynamic/1/3shot_seed6/"
+    # upsample_path = "checkpoints/upsample/1/3shot_seed6/"
+    # spcb_path = "checkpoints/rdd1/1/3shot_seed6/"
+    #
+    # tnse(dynamic_path)
+    for i in [0, 5]:
+        prediction_res(names, i)
+    prediction_draw(names)
