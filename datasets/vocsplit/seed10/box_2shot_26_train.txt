@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000013_000220
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000250

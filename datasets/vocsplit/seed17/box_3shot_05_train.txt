@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000010_000140
+datasets/RDD/JPEGImages/13_Elly_Beinhorn_Str_000000_000200
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000000_000110

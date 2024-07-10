@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000005_000180
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000005_000140
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000004_000060

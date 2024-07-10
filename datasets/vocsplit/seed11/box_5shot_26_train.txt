@@ -1,0 +1,5 @@
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000011_000150
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000070
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000011_000050
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000200
+datasets/RDD/JPEGImages/14_Otto_Lilienthal_Str_24_000000_000080

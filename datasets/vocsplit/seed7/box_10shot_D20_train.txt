@@ -1,0 +1,9 @@
+datasets/RDD/JPEGImages/Japan_007655.jpg
+datasets/RDD/JPEGImages/China_Drone_002384.jpg
+datasets/RDD/JPEGImages/Norway_001417.jpg
+datasets/RDD/JPEGImages/Japan_006338.jpg
+datasets/RDD/JPEGImages/Japan_012706.jpg
+datasets/RDD/JPEGImages/Japan_006901.jpg
+datasets/RDD/JPEGImages/Japan_003004.jpg
+datasets/RDD/JPEGImages/United_States_004098.jpg
+datasets/RDD/JPEGImages/Japan_010372.jpg

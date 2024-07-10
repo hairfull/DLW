@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/United_States_000231.jpg
+datasets/RDD/JPEGImages/Norway_000085.jpg
+datasets/RDD/JPEGImages/United_States_000511.jpg

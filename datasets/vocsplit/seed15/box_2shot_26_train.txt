@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000200
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000090

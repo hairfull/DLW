@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/Czech_002444.jpg
+datasets/RDD/JPEGImages/United_States_002830.jpg
+datasets/RDD/JPEGImages/United_States_002237.jpg

@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000100
+datasets/RDD/JPEGImages/06_Galgenbergstr_40_000003_000130
+datasets/RDD/JPEGImages/05_Schafgasse_1_000003_000140
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000200
+datasets/RDD/JPEGImages/05_Schafgasse_1_000007_000080
+datasets/RDD/JPEGImages/05_Schafgasse_1_000007_000030
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000130
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000220
+datasets/RDD/JPEGImages/06_Galgenbergstr_40_000003_000160
+datasets/RDD/JPEGImages/05_Schafgasse_1_000007_000050

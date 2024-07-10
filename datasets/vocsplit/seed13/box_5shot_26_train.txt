@@ -1,0 +1,5 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000016_000080
+datasets/RDD/JPEGImages/05_Schafgasse_1_000017_000180
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000011_000210
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000040
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000011_000040

@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000011_000160
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000013_000220
+datasets/RDD/JPEGImages/05_Schafgasse_1_000013_000170

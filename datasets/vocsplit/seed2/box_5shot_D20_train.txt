@@ -1,0 +1,4 @@
+datasets/RDD/JPEGImages/India_008530.jpg
+datasets/RDD/JPEGImages/United_States_004444.jpg
+datasets/RDD/JPEGImages/United_States_004444.jpg
+datasets/RDD/JPEGImages/Norway_001123.jpg

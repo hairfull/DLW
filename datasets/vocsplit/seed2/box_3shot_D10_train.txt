@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/United_States_000481.jpg
+datasets/RDD/JPEGImages/China_MotorBike_000026.jpg
+datasets/RDD/JPEGImages/China_MotorBike_000687.jpg

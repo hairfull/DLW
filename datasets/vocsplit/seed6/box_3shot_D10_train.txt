@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/Norway_007931.jpg
+datasets/RDD/JPEGImages/China_Drone_002259.jpg
+datasets/RDD/JPEGImages/Czech_001773.jpg

@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000010_000100
+datasets/RDD/JPEGImages/10_Schlossberg_9_000000_000050

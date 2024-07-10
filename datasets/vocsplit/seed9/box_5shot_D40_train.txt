@@ -1,0 +1,5 @@
+datasets/RDD/JPEGImages/Japan_011965.jpg
+datasets/RDD/JPEGImages/Norway_006168.jpg
+datasets/RDD/JPEGImages/Japan_007209.jpg
+datasets/RDD/JPEGImages/Czech_001956.jpg
+datasets/RDD/JPEGImages/Czech_000582.jpg

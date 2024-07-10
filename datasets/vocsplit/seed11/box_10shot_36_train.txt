@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000090
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000005_000050
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000008_000040
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000150
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000040
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000005_000130
+datasets/RDD/JPEGImages/05_Schafgasse_1_000006_000120
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000004_000020
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000005_000170
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000005_000150
