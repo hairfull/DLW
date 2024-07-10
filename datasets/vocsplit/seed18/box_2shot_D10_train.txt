@@ -1,2 +1,2 @@
-datasets/RDD/JPEGImages/Japan_000354.jpg
-datasets/RDD/JPEGImages/Norway_002482.jpg
+datasets/RDD/JPEGImages/United_States_004530.jpg
+datasets/RDD/JPEGImages/China_Drone_000911.jpg

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/defrcn_ori/
+SAVE_DIR=checkpoints/LAF/defrcn_ori/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
 seed=1

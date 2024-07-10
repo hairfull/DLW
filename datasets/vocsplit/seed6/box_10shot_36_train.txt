@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000005_000160
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000005_000220
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000002_000080
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000160
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000004_000050
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000005_000200
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000008_000170
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000005_000120
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000005_000150
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000008_000020

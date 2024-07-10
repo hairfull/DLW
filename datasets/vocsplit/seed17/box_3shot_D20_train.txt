@@ -1,3 +1,3 @@
-datasets/RDD/JPEGImages/Norway_007681.jpg
-datasets/RDD/JPEGImages/Japan_004577.jpg
-datasets/RDD/JPEGImages/Japan_011899.jpg
+datasets/RDD/JPEGImages/Japan_003108.jpg
+datasets/RDD/JPEGImages/United_States_001108.jpg
+datasets/RDD/JPEGImages/Japan_006719.jpg

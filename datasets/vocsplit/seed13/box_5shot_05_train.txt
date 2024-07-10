@@ -1,0 +1,5 @@
+datasets/RDD/JPEGImages/03_Hanns_Klemm_Str_19_000000_000170
+datasets/RDD/JPEGImages/07_Festplatz_Flugfeld_000000_000180
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000001_000140
+datasets/RDD/JPEGImages/03_Hanns_Klemm_Str_19_000000_000020
+datasets/RDD/JPEGImages/13_Elly_Beinhorn_Str_000000_000080

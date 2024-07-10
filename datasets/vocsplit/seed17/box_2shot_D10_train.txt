@@ -1,2 +1,2 @@
-datasets/RDD/JPEGImages/United_States_002722.jpg
-datasets/RDD/JPEGImages/United_States_002570.jpg
+datasets/RDD/JPEGImages/Japan_004968.jpg
+datasets/RDD/JPEGImages/United_States_004717.jpg

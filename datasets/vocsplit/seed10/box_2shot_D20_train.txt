@@ -1,2 +1,2 @@
-datasets/RDD/JPEGImages/Japan_003911.jpg
-datasets/RDD/JPEGImages/Japan_010550.jpg
+datasets/RDD/JPEGImages/Japan_006649.jpg
+datasets/RDD/JPEGImages/Japan_000950.jpg

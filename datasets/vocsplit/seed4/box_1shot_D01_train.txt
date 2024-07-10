@@ -1,1 +1,0 @@
-datasets/RDD/JPEGImages/India_007907.jpg

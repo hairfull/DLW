@@ -34,33 +34,39 @@ def register_all_coco(root="datasets"):
 def register_all_voc(root="datasets"):
 
     METASPLITS = [
-        ("rdd_test_1", "RDD", "test", "base_novel_1", 1),
-        ("rdd_test_2", "RDD", "test", "base_novel_2", 2),
-        ("rdd_test_3", "RDD", "test", "base_novel_3", 3),
-        ("rdd_trainval_base_1", "RDD", "trainval", "base1", 1),
-        ("rdd_trainval_base_2", "RDD", "trainval", "base2", 2),
-        ("rdd_trainval_base_3", "RDD", "trainval", "base3", 3),
+        ("rdd_test_1",          "RDD", "test",      "base_novel_1", 1),
+        ("rdd_test_2",          "RDD", "test",      "base_novel_2", 2),
+        ("rdd_test_3",          "RDD", "test",      "base_novel_3", 3),
+        ("rdd_trainval_base_1", "RDD", "trainval",  "base1",        1),
+        ("rdd_trainval_base_2", "RDD", "trainval",  "base2",        2),
+        ("rdd_trainval_base_3", "RDD", "trainval",  "base3",        3),
+        ("laf_test_1",          "LAF", "test",      "base_novel_1", 1),
+        ("laf_test_2",          "LAF", "test",      "base_novel_2", 2),
+        ("laf_test_3",          "LAF", "test",      "base_novel_3", 3),
+        ("laf_trainval_base_1", "LAF", "trainval",  "base1",        1),
+        ("laf_trainval_base_2", "LAF", "trainval",  "base2",        2),
+        ("laf_trainval_base_3", "LAF", "trainval",  "base3",        3),
     ]
     for prefix in ["all", "novel"]:
         for sid in range(1, 4):
             for shot in [1, 2, 3, 5, 10]:
-                for seed in range(20):
-                    seed = "_seed{}".format(seed)
-                    name = "rdd_trainval_{}{}_{}shot{}".format(
-                        prefix, sid, shot, seed
-                    )
-                    dirname = "RDD"
-                    img_file = "{}_{}shot_split_{}_trainval".format(
-                        prefix, shot, sid
-                    )
-                    keepclasses = (
-                        "base_novel_{}".format(sid)
-                        if prefix == "all"
-                        else "novel{}".format(sid)
-                    )
-                    METASPLITS.append(
-                        (name, dirname, img_file, keepclasses, sid)
-                    )
+                for dataset in ['rdd', 'laf']:
+                    for seed in range(20):
+                        seed = "_seed{}".format(seed)
+                        name = "{}_trainval_{}{}_{}shot{}".format(
+                            dataset, prefix, sid, shot, seed
+                        )
+                        img_file = "{}_{}shot_split_{}_trainval".format(
+                            prefix, shot, sid
+                        )
+                        keepclasses = (
+                            "base_novel_{}".format(sid)
+                            if prefix == "all"
+                            else "novel{}".format(sid)
+                        )
+                        METASPLITS.append(
+                            (name, dataset.upper(), img_file, keepclasses, sid)
+                        )
 
     for name, dirname, split, keepclasses, sid in METASPLITS:
         # year = 2007 if "2007" in name else 2012

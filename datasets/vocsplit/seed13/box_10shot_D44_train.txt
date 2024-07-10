@@ -1,9 +1,8 @@
-datasets/RDD/JPEGImages/India_007120.jpg
-datasets/RDD/JPEGImages/India_001685.jpg
-datasets/RDD/JPEGImages/Japan_012325.jpg
-datasets/RDD/JPEGImages/India_009027.jpg
-datasets/RDD/JPEGImages/Japan_002407.jpg
-datasets/RDD/JPEGImages/Japan_007296.jpg
-datasets/RDD/JPEGImages/Japan_004294.jpg
-datasets/RDD/JPEGImages/Japan_003324.jpg
-datasets/RDD/JPEGImages/Japan_003084.jpg
+datasets/RDD/JPEGImages/Japan_004114.jpg
+datasets/RDD/JPEGImages/Japan_010974.jpg
+datasets/RDD/JPEGImages/Japan_004035.jpg
+datasets/RDD/JPEGImages/Japan_011163.jpg
+datasets/RDD/JPEGImages/India_007316.jpg
+datasets/RDD/JPEGImages/Japan_007912.jpg
+datasets/RDD/JPEGImages/Japan_009658.jpg
+datasets/RDD/JPEGImages/Japan_002728.jpg

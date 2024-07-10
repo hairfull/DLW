@@ -1,2 +1,2 @@
-datasets/RDD/JPEGImages/Norway_004552.jpg
-datasets/RDD/JPEGImages/India_004461.jpg
+datasets/RDD/JPEGImages/India_003883.jpg
+datasets/RDD/JPEGImages/Czech_000406.jpg

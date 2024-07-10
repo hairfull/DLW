@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/05_Schafgasse_1_000017_000090
+datasets/RDD/JPEGImages/05_Schafgasse_1_000017_000080

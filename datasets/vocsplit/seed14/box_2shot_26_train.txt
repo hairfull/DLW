@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/05_Schafgasse_1_000013_000060
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000011_000170

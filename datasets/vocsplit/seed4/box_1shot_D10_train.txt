@@ -1,1 +1,1 @@
-datasets/RDD/JPEGImages/China_Drone_000186.jpg
+datasets/RDD/JPEGImages/China_Drone_001040.jpg
