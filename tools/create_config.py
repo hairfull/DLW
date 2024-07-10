@@ -4,7 +4,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, default='rdd', help='', choices=['rdd'])
+    parser.add_argument('--dataset', type=str, default='rdd', help='', choices=['rdd', 'laf'])
     parser.add_argument('--config_root', type=str, default='', help='the path to config dir')
     parser.add_argument('--shot', type=int, default=1, help='shot to run experiments over')
     parser.add_argument('--seed', type=int, default=0, help='seed to run experiments over')
@@ -26,8 +26,11 @@ def save_config_file(yaml_info, yaml_path):
     wf.close()
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    if args == None:
+        args = parse_args()
+    else:
+        args = args
     # suffix = 'novel' if args.setting == 'fsod' else 'all'
 
     # if args.dataset in ['voc']:
@@ -65,6 +68,17 @@ def main():
             if '  TEST: ' in lineinfo:
                 yaml_info[i] = f'  TEST: ("rdd_test_{args.split}",)\n'
         yaml_path = f'{args.config_root}/DGT_rdd_split{args.split}_{args.shot}shot_seed{args.seed}.yaml'
+    elif args.dataset == 'laf':
+        name_template = 'DGT_laf.yaml'
+        yaml_path = os.path.join(args.config_root, name_template)
+        yaml_info = load_config_file(yaml_path)
+        for i, lineinfo in enumerate(yaml_info):
+            # 逆天，设成'train'还真会出错
+            if '  TRAIN: ' in lineinfo:
+                yaml_info[i] = f'  TRAIN: ("laf_trainval_novel{args.split}_{args.shot}shot_seed{args.seed}", )\n'
+            if '  TEST: ' in lineinfo:
+                yaml_info[i] = f'  TEST: ("laf_test_{args.split}",)\n'
+        yaml_path = f'{args.config_root}/DGT_laf_split{args.split}_{args.shot}shot_seed{args.seed}.yaml'
     else:
         raise NotImplementedError
 

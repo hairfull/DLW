@@ -1,7 +1,0 @@
-datasets/RDD/JPEGImages/Japan_009208.jpg
-datasets/RDD/JPEGImages/India_005601.jpg
-datasets/RDD/JPEGImages/India_009536.jpg
-datasets/RDD/JPEGImages/China_MotorBike_001033.jpg
-datasets/RDD/JPEGImages/Japan_010872.jpg
-datasets/RDD/JPEGImages/India_002658.jpg
-datasets/RDD/JPEGImages/India_002112.jpg

@@ -161,21 +161,9 @@ COCO_NOVEL_CATEGORIES = [
 
 # PASCAL VOC categories
 PASCAL_VOC_ALL_CATEGORIES = {
-    1: ["D00", "D40", "D44", "D10", "D20",
-        "D50", "D43", "Repair", "D01",
-    ],
-    2: ["D00", "D40", "D44", "D10", "D20",
-        "D50", "D43", "Repair", "D11",
-    ],
-    3: ["D00", "D40", "D44", "D10", "D20",
-        "D50", "D43", "D01","D11",
-    ],
-}
-
-PASCAL_VOC_NOVEL_CATEGORIES = {
-    1: ["D43", "Repair", "D01",],
-    2: ["D43", "Repair", "D11",],
-    3: ["D43", "D01","D11",],
+    1: ["D00", "D40", "D44", "D10", "D20", "D50", '05', '20', '26'],
+    2: ["D00", "D40", "D44", "D10", "D20", "D50", '05', '20', '36'],
+    3: ["D00", "D40", "D44", "D10", "D20", "D50", '05', '26', '36'],
 }
 
 PASCAL_VOC_BASE_CATEGORIES = {
@@ -190,6 +178,11 @@ PASCAL_VOC_BASE_CATEGORIES = {
     ],
 }
 
+PASCAL_VOC_NOVEL_CATEGORIES = {
+    1: ['05', '20', '26'],
+    2: ['05', '20', '36'],
+    3: ['05', '26', '36'],
+}
 
 def _get_coco_instances_meta():
     thing_ids = [k["id"] for k in COCO_CATEGORIES if k["isthing"] == 1]

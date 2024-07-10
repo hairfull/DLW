@@ -1,5 +1,0 @@
-datasets/RDD/JPEGImages/United_States_001075.jpg
-datasets/RDD/JPEGImages/China_Drone_000363.jpg
-datasets/RDD/JPEGImages/United_States_000346.jpg
-datasets/RDD/JPEGImages/United_States_000877.jpg
-datasets/RDD/JPEGImages/China_Drone_001916.jpg

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
 # 结果存在哪
-SAVE_DIR=checkpoints/new_dynamic/2024_04_25_23_00/
+SAVE_DIR=checkpoints/laf/new_dynamic/2024_07_07_15_00/
 IMAGENET_PRETRAIN=ImageNetPretrained/MSRA/R-101.pkl                            # <-- change it to you path
 IMAGENET_PRETRAIN_TORCH=ImageNetPretrained/torchvision/resnet101-5d3b4d8f.pth  # <-- change it to you path
 seed=1
-DATASET=rdd
+DATASET=laf
 
-for SPLIT_ID in 1
+for SPLIT_ID in 1 2 3
 do
-    for shot in 5 10
+    for shot in 1 2 3 5 10
     do
         python3 tools/create_config.py --dataset ${DATASET} --config_root configs/${DATASET}               \
             --shot ${shot} --seed ${seed} --split ${SPLIT_ID}
-        CONFIG_PATH=configs/${DATASET}/DGT_rdd_split${SPLIT_ID}_${shot}shot_seed${seed}.yaml
+        CONFIG_PATH=configs/${DATASET}/DGT_${DATASET}_split${SPLIT_ID}_${shot}shot_seed${seed}.yaml
         OUTPUT_DIR=${SAVE_DIR}/${SPLIT_ID}/${shot}shot_seed${seed}
         python3 main.py --num-gpus 1 --config-file ${CONFIG_PATH}                            \
             --opts OUTPUT_DIR ${OUTPUT_DIR}

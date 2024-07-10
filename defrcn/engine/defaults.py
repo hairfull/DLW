@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 import math
@@ -16,7 +17,7 @@ from detectron2.utils.logger import setup_logger
 from detectron2.engine import hooks, SimpleTrainer
 from detectron2.utils.collect_env import collect_env_info
 from detectron2.utils.events import TensorboardXWriter, CommonMetricPrinter, JSONWriter, get_event_storage
-
+from detectron2.structures import pairwise_iou
 from defrcn.config import CfgNode, get_cfg
 from defrcn.data import *
 from defrcn.modeling import build_model
@@ -177,7 +178,6 @@ def setup_base_cfg(split):
 
 
 class DefaultPredictor:
-    ## 应该没啥用
     """
     Create a simple end-to-end predictor with the given config.
     The predictor takes an BGR image, resizes it to the specified resolution,
@@ -203,14 +203,7 @@ class DefaultPredictor:
         self.cfg = cfg.clone()  # cfg can be modified by model
         self.model = build_model(self.cfg)
         self.model.eval()
-
-        # loader
-        base_cfg = setup_base_cfg()
-        self.novel_loader = self.build_train_loader(cfg)
-        self.base_loader = self.build_train_loader(base_cfg)
-
-        self._novel_loader_iter = iter(self.novel_loader)
-        self._base_loader_iter = iter(self.base_loader)
+        self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
 
         checkpointer = DetectionCheckpointer(self.model)
         checkpointer.load(cfg.MODEL.WEIGHTS)
@@ -246,27 +239,6 @@ class DefaultPredictor:
         inputs = {"image": image, "height": height, "width": width}
         predictions = self.model([inputs])[0]
         return predictions
-
-    @torch.no_grad()
-    def get_rpn_feature(self):
-        # 改一下iter方法:
-        for inputs in self:
-            proposal_loss = self.model.get_rpn_feauture(inputs, is_base=False)
-
-        return None
-
-    @classmethod
-    def build_test_loader(cls, cfg, dataset_name):
-        """
-        Returns:
-            iterable
-
-        It now calls :func:`defrcn.data.build_detection_test_loader`.
-        Overwrite it if you'd like a different data loader.
-        """
-        return build_detection_test_loader(cfg, dataset_name)
-
-
 
 
 class DefaultTrainer(SimpleTrainer):
@@ -482,7 +454,7 @@ class DefaultTrainer(SimpleTrainer):
         Returns:
             OrderedDict of results, if evaluation is enabled. Otherwise None.
         """
-        super().train(self.start_iter, 8000)
+        super().train(self.start_iter, self.max_iter)
         if hasattr(self, "_last_eval_results") and comm.is_main_process():
             verify_results(self.cfg, self._last_eval_results)
             return self._last_eval_results
@@ -613,6 +585,105 @@ class DefaultTrainer(SimpleTrainer):
         if len(results) == 1:
             results = list(results.values())[0]
         return results
+
+    @classmethod
+    def calc_recall(cls, cfg, model, evaluators=None, iou_threshold=0.5):
+        """
+        Args:
+            cfg (CfgNode):
+            model (nn.Module):
+            evaluators (list[DatasetEvaluator] or None): if None, will call
+                :meth:`build_evaluator`. Otherwise, must have the same length as
+                `cfg.DATASETS.TEST`.
+
+        Returns:
+            dict: a dict of result metrics
+        """
+        logger = logging.getLogger(__name__)
+
+        if isinstance(evaluators, DatasetEvaluator):
+            evaluators = [evaluators]
+        if evaluators is not None:
+            assert len(cfg.DATASETS.TEST) == len(
+                evaluators
+            ), "{} != {}".format(len(cfg.DATASETS.TEST), len(evaluators))
+
+        for idx, dataset_name in enumerate(cfg.DATASETS.TEST):
+            data_loader = cls.build_test_loader(cfg, dataset_name)
+            # When evaluators are passed in as arguments,
+            # implicitly assume that evaluators can be created before data_loader.
+            if evaluators is not None:
+                evaluator = evaluators[idx]
+            else:
+                try:
+                    evaluator = cls.build_evaluator(cfg, dataset_name)
+                except NotImplementedError:
+                    logger.warn(
+                        "No evaluator found. Use `DefaultTrainer.test(evaluators=)`, "
+                        "or implement its `build_evaluator` method."
+                    )
+                    continue
+
+            logger = logging.getLogger(__name__)
+            logger.info("Start inference on {} images".format(len(data_loader)))
+            total = len(data_loader)  # inference data loader must have a fixed length
+            evaluator.reset()
+
+            novel_total_gt_boxes = 0
+            novel_matched_gt_boxes = 0
+            base_total_gt_boxes = 0
+            base_matched_gt_boxes = 0
+
+            logging_interval = 50
+            num_warmup = min(5, logging_interval - 1, total - 1)
+            start_time = time.time()
+            total_compute_time = 0
+            with torch.no_grad():
+                for idx, inputs in enumerate(data_loader):
+                    if idx == num_warmup:
+                        start_time = time.time()
+                        total_compute_time = 0
+
+                    start_compute_time = time.time()
+
+                    gt_boxes = inputs[0]["instances"]._fields["gt_boxes"].to('cuda')
+                    proposals = model(inputs, only_proposal=True)
+                    proposal_boxes = proposals[0]._fields["proposal_boxes"]
+
+                    iou_matrix = pairwise_iou(gt_boxes, proposal_boxes)
+                    for i in range(len(gt_boxes)):
+                        label = inputs[0]["instances"]._fields['gt_classes'][i].item()
+
+                        if iou_matrix[i].max() >= iou_threshold:
+                            if label >= 6:
+                                novel_matched_gt_boxes += 1
+                            else:
+                                base_matched_gt_boxes += 1
+                        if label >= 6:
+                            novel_total_gt_boxes += 1
+                        else:
+                            base_total_gt_boxes += 1
+                    torch.cuda.synchronize()
+                    total_compute_time += time.time() - start_compute_time
+
+                    if (idx + 1) % logging_interval == 0:
+                        duration = time.time() - start_time
+                        seconds_per_img = duration / (idx + 1 - num_warmup)
+                        eta = datetime.timedelta(
+                            seconds=int(seconds_per_img * (total - num_warmup) - duration)
+                        )
+                        logger.info(
+                            "Inference done {}/{}. {:.4f} s / img. ETA={}".format(
+                                idx + 1, total, seconds_per_img, str(eta)
+                            )
+                        )
+
+            novel_rpn_recall = novel_matched_gt_boxes / novel_total_gt_boxes
+            base_rpn_recall = base_matched_gt_boxes / base_total_gt_boxes
+            all_rpn_recall = (novel_matched_gt_boxes + base_matched_gt_boxes) / (
+                        novel_total_gt_boxes + base_total_gt_boxes)
+            logger.info(f"all:{all_rpn_recall} novel:{novel_rpn_recall} base:{base_rpn_recall}")
+        return
 
     def run_step(self):
         """

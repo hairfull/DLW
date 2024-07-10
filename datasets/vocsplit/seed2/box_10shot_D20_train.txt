@@ -1,7 +1,0 @@
-datasets/RDD/JPEGImages/India_002256.jpg
-datasets/RDD/JPEGImages/India_008724.jpg
-datasets/RDD/JPEGImages/Norway_001765.jpg
-datasets/RDD/JPEGImages/China_Drone_000474.jpg
-datasets/RDD/JPEGImages/Norway_002992.jpg
-datasets/RDD/JPEGImages/Japan_011372.jpg
-datasets/RDD/JPEGImages/India_000436.jpg

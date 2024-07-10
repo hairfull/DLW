@@ -45,9 +45,9 @@ class GeneralizedRCNN(nn.Module):
                 p.requires_grad = False
             print("froze roi_box_head parameters")
 
-    def forward(self, batched_inputs, is_base=False):
+    def forward(self, batched_inputs, is_base=False, only_proposal=False):
         if not self.training:
-            return self.inference(batched_inputs)
+            return self.inference(batched_inputs, only_proposal=only_proposal)
         assert "instances" in batched_inputs[0]
         gt_instances = [x["instances"].to(self.device) for x in batched_inputs]
         if not is_base:
@@ -71,8 +71,11 @@ class GeneralizedRCNN(nn.Module):
     #     losses.update(proposal_losses)
     #     return losses
 
-    def inference(self, batched_inputs):
+    def inference(self, batched_inputs, only_proposal=False):
         assert not self.training
+        if only_proposal:
+            proposal = self._forward_once_(batched_inputs, None, only_proposal=True)
+            return proposal
         _, _, results, image_sizes = self._forward_once_(batched_inputs, None)
         processed_results = []
         for r, input, image_size in zip(results, batched_inputs, image_sizes):
@@ -82,7 +85,7 @@ class GeneralizedRCNN(nn.Module):
             processed_results.append({"instances": r})
         return processed_results
 
-    def _forward_once_(self, batched_inputs, gt_instances=None):
+    def _forward_once_(self, batched_inputs, gt_instances=None, only_proposal=False):
 
         images = self.preprocess_image(batched_inputs)
         features = self.backbone(images.tensor)
@@ -92,7 +95,8 @@ class GeneralizedRCNN(nn.Module):
         #     scale = self.cfg.MODEL.RPN.BACKWARD_SCALE
         #     features_de_rpn = {k: self.affine_rpn(decouple_layer(features[k], scale)) for k in features}
         proposals, proposal_losses = self.proposal_generator(images, features_de_rpn, gt_instances)
-
+        if only_proposal:
+            return proposals
         features_de_rcnn = features
         # if self.cfg.MODEL.ROI_HEADS.ENABLE_DECOUPLE:
         #     scale = self.cfg.MODEL.ROI_HEADS.BACKWARD_SCALE
@@ -115,3 +119,15 @@ class GeneralizedRCNN(nn.Module):
         pixel_std = (torch.Tensor(
             self.cfg.MODEL.PIXEL_STD).to(self.device).view(num_channels, 1, 1))
         return lambda x: (x - pixel_mean) / pixel_std
+
+    def get_proposal(self, batched_inputs, gt_instances=None):
+
+        images = self.preprocess_image(batched_inputs)
+        features = self.backbone(images.tensor)
+
+        features_de_rpn = features
+        # if self.cfg.MODEL.RPN.ENABLE_DECOUPLE:
+        #     scale = self.cfg.MODEL.RPN.BACKWARD_SCALE
+        #     features_de_rpn = {k: self.affine_rpn(decouple_layer(features[k], scale)) for k in features}
+        proposals, proposal_losses = self.proposal_generator(images, features_de_rpn, gt_instances)
+        return proposals

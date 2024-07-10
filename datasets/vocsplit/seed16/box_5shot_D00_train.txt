@@ -1,5 +1,0 @@
-datasets/RDD/JPEGImages/United_States_002221.jpg
-datasets/RDD/JPEGImages/Japan_003002.jpg
-datasets/RDD/JPEGImages/Norway_001142.jpg
-datasets/RDD/JPEGImages/Japan_007334.jpg
-datasets/RDD/JPEGImages/Norway_005987.jpg

@@ -1,5 +1,0 @@
-datasets/RDD/JPEGImages/Japan_006523.jpg
-datasets/RDD/JPEGImages/Japan_000378.jpg
-datasets/RDD/JPEGImages/Japan_000027.jpg
-datasets/RDD/JPEGImages/India_004277.jpg
-datasets/RDD/JPEGImages/Japan_002241.jpg

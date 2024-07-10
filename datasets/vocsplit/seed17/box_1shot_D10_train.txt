@@ -1,1 +1,0 @@
-datasets/RDD/JPEGImages/United_States_002722.jpg

@@ -1,9 +1,0 @@
-datasets/RDD/JPEGImages/Norway_006151.jpg
-datasets/RDD/JPEGImages/Norway_001536.jpg
-datasets/RDD/JPEGImages/Japan_012022.jpg
-datasets/RDD/JPEGImages/Norway_000447.jpg
-datasets/RDD/JPEGImages/Japan_011449.jpg
-datasets/RDD/JPEGImages/Japan_006163.jpg
-datasets/RDD/JPEGImages/United_States_002383.jpg
-datasets/RDD/JPEGImages/United_States_004638.jpg
-datasets/RDD/JPEGImages/Czech_000474.jpg

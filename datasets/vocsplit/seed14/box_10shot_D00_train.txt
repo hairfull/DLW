@@ -1,8 +1,0 @@
-datasets/RDD/JPEGImages/United_States_003333.jpg
-datasets/RDD/JPEGImages/Norway_000720.jpg
-datasets/RDD/JPEGImages/United_States_001093.jpg
-datasets/RDD/JPEGImages/Norway_007184.jpg
-datasets/RDD/JPEGImages/China_MotorBike_001028.jpg
-datasets/RDD/JPEGImages/United_States_003786.jpg
-datasets/RDD/JPEGImages/Japan_007775.jpg
-datasets/RDD/JPEGImages/Japan_012002.jpg

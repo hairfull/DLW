@@ -1,9 +1,0 @@
-datasets/RDD/JPEGImages/United_States_000419.jpg
-datasets/RDD/JPEGImages/United_States_003835.jpg
-datasets/RDD/JPEGImages/Japan_009732.jpg
-datasets/RDD/JPEGImages/United_States_003450.jpg
-datasets/RDD/JPEGImages/United_States_004529.jpg
-datasets/RDD/JPEGImages/China_Drone_001038.jpg
-datasets/RDD/JPEGImages/China_MotorBike_001227.jpg
-datasets/RDD/JPEGImages/Japan_007760.jpg
-datasets/RDD/JPEGImages/United_States_000720.jpg

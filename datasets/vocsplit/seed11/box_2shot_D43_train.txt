@@ -1,2 +1,0 @@
-datasets/RDD/JPEGImages/Japan_003968.jpg
-datasets/RDD/JPEGImages/Japan_009295.jpg

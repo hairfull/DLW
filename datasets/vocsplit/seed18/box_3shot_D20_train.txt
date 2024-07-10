@@ -1,3 +1,0 @@
-datasets/RDD/JPEGImages/China_MotorBike_000543.jpg
-datasets/RDD/JPEGImages/Japan_011424.jpg
-datasets/RDD/JPEGImages/Japan_006628.jpg

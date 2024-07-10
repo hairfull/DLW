@@ -8,8 +8,7 @@ import random
 import xml.etree.ElementTree as ET
 
 # 10 FSOD classes
-VOC_CLASSES = ['D00', 'D40', 'D44', 'D10', 'D20', 'D50', 'D43',
-               'Repair', 'D01','D11',]
+VOC_CLASSES = ['D00', 'D40', 'D44', 'D10', 'D20', 'D50', '05', '20', '26', '36',]
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -40,7 +39,7 @@ def generate_seeds(args):
                 data_per_cat[cls].append(anno_file)
 
     result = {cls: {} for cls in data_per_cat.keys()}
-    shots = [1, 2, 3, 5, 10, 30]
+    shots = [1, 2, 3, 5, 10]
     for i in range(args.seeds[0], args.seeds[1]):
         random.seed(i)
         for c in data_per_cat.keys():

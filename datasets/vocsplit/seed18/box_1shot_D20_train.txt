@@ -1,1 +1,0 @@
-datasets/RDD/JPEGImages/China_MotorBike_000543.jpg
