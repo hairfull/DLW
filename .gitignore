@@ -27,6 +27,7 @@ configs/rdd/defrcn_gfsod_r101_novel1*
 
 checkpoints/
 datasets/RDD
+datasets/LAF
 datasets/VOC2007
 datasets/VOC2012
 tools/*.jpg
