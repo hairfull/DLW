@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000200
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000090
+datasets/RDD/JPEGImages/14_Otto_Lilienthal_Str_24_000000_000020

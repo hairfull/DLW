@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/07_Festplatz_Flugfeld_000004_000170
+datasets/RDD/JPEGImages/06_Galgenbergstr_40_000003_000150
+datasets/RDD/JPEGImages/05_Schafgasse_1_000007_000120
+datasets/RDD/JPEGImages/05_Schafgasse_1_000007_000090
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000002_000090
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000002_000090
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000007_000240
+datasets/RDD/JPEGImages/05_Schafgasse_1_000003_000150
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000002_000170
+datasets/RDD/JPEGImages/07_Festplatz_Flugfeld_000004_000160

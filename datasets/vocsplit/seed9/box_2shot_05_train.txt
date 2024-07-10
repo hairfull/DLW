@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/10_Schlossberg_9_000000_000100
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000060

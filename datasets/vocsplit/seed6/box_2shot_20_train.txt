@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/06_Galgenbergstr_40_000003_000230
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000002_000020

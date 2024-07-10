@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000010_000200
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000050
+datasets/RDD/JPEGImages/05_Schafgasse_1_000000_000180
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000080
+datasets/RDD/JPEGImages/07_Festplatz_Flugfeld_000000_000180
+datasets/RDD/JPEGImages/10_Schlossberg_9_000000_000050
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000000_000030
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000140
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000070
+datasets/RDD/JPEGImages/05_Schafgasse_1_000000_000020

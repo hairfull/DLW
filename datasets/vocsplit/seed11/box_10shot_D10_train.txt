@@ -1,8 +1,7 @@
-datasets/RDD/JPEGImages/United_States_001075.jpg
-datasets/RDD/JPEGImages/China_Drone_000363.jpg
-datasets/RDD/JPEGImages/United_States_000346.jpg
-datasets/RDD/JPEGImages/United_States_000877.jpg
-datasets/RDD/JPEGImages/China_Drone_001916.jpg
-datasets/RDD/JPEGImages/United_States_000938.jpg
-datasets/RDD/JPEGImages/China_Drone_001336.jpg
-datasets/RDD/JPEGImages/China_Drone_002395.jpg
+datasets/RDD/JPEGImages/Norway_000734.jpg
+datasets/RDD/JPEGImages/Japan_005477.jpg
+datasets/RDD/JPEGImages/United_States_002765.jpg
+datasets/RDD/JPEGImages/Japan_007911.jpg
+datasets/RDD/JPEGImages/Czech_002123.jpg
+datasets/RDD/JPEGImages/Norway_004931.jpg
+datasets/RDD/JPEGImages/Japan_011292.jpg

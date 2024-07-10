@@ -1,0 +1,5 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000001_000040
+datasets/RDD/JPEGImages/05_Schafgasse_1_000000_000110
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000000_000190
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000150
+datasets/RDD/JPEGImages/13_Elly_Beinhorn_Str_000000_000110

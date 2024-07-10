@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/04_Maurener_Weg_8_000002_000010
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000001_000190
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000001_000090
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000000_000260
+datasets/RDD/JPEGImages/07_Festplatz_Flugfeld_000000_000140
+datasets/RDD/JPEGImages/10_Schlossberg_9_000000_000070
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000010_000170
+datasets/RDD/JPEGImages/03_Hanns_Klemm_Str_19_000000_000110
+datasets/RDD/JPEGImages/11_Parkplatz_Flugfeld_000000_000050
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000010_000110

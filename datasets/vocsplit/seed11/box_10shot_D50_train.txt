@@ -1,9 +1,8 @@
-datasets/RDD/JPEGImages/Japan_009004.jpg
-datasets/RDD/JPEGImages/Japan_000654.jpg
-datasets/RDD/JPEGImages/Japan_002740.jpg
-datasets/RDD/JPEGImages/Japan_009123.jpg
-datasets/RDD/JPEGImages/Japan_010462.jpg
-datasets/RDD/JPEGImages/Japan_002168.jpg
-datasets/RDD/JPEGImages/Japan_000050.jpg
-datasets/RDD/JPEGImages/Japan_010130.jpg
-datasets/RDD/JPEGImages/Japan_007513.jpg
+datasets/RDD/JPEGImages/Japan_002208.jpg
+datasets/RDD/JPEGImages/Japan_006968.jpg
+datasets/RDD/JPEGImages/Japan_012480.jpg
+datasets/RDD/JPEGImages/Japan_008128.jpg
+datasets/RDD/JPEGImages/Japan_009542.jpg
+datasets/RDD/JPEGImages/Japan_005535.jpg
+datasets/RDD/JPEGImages/Japan_003132.jpg
+datasets/RDD/JPEGImages/Japan_008351.jpg

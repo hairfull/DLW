@@ -1,9 +1,0 @@
-datasets/RDD/JPEGImages/China_Drone_000598.jpg
-datasets/RDD/JPEGImages/China_MotorBike_001231.jpg
-datasets/RDD/JPEGImages/China_MotorBike_000332.jpg
-datasets/RDD/JPEGImages/China_Drone_000779.jpg
-datasets/RDD/JPEGImages/China_Drone_000639.jpg
-datasets/RDD/JPEGImages/China_MotorBike_000312.jpg
-datasets/RDD/JPEGImages/China_Drone_001649.jpg
-datasets/RDD/JPEGImages/China_MotorBike_000998.jpg
-datasets/RDD/JPEGImages/China_Drone_000099.jpg

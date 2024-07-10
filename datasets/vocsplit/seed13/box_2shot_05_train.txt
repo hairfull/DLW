@@ -1,0 +1,2 @@
+datasets/RDD/JPEGImages/03_Hanns_Klemm_Str_19_000000_000170
+datasets/RDD/JPEGImages/07_Festplatz_Flugfeld_000000_000180

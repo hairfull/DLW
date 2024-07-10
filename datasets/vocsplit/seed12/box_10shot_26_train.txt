@@ -1,0 +1,10 @@
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000011_000160
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000013_000220
+datasets/RDD/JPEGImages/05_Schafgasse_1_000013_000170
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000012_000260
+datasets/RDD/JPEGImages/05_Schafgasse_1_000013_000120
+datasets/RDD/JPEGImages/12_Umberto_Nobile_Str_000007_000220
+datasets/RDD/JPEGImages/14_Otto_Lilienthal_Str_24_000000_000070
+datasets/RDD/JPEGImages/05_Schafgasse_1_000017_000180
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000016_000140
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000013_000180

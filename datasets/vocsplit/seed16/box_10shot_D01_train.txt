@@ -1,8 +1,0 @@
-datasets/RDD/JPEGImages/India_001118.jpg
-datasets/RDD/JPEGImages/India_005053.jpg
-datasets/RDD/JPEGImages/India_002588.jpg
-datasets/RDD/JPEGImages/India_004227.jpg
-datasets/RDD/JPEGImages/India_001155.jpg
-datasets/RDD/JPEGImages/India_004817.jpg
-datasets/RDD/JPEGImages/India_009712.jpg
-datasets/RDD/JPEGImages/India_007514.jpg

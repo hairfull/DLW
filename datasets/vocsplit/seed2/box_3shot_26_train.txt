@@ -1,0 +1,3 @@
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000013_000140
+datasets/RDD/JPEGImages/01_Hanns_Klemm_Str_45_000012_000260
+datasets/RDD/JPEGImages/02_Hanns_Klemm_Str_44_000016_000120

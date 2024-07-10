@@ -1,2 +1,2 @@
-datasets/RDD/JPEGImages/India_006237.jpg
-datasets/RDD/JPEGImages/China_MotorBike_000422.jpg
+datasets/RDD/JPEGImages/India_003682.jpg
+datasets/RDD/JPEGImages/India_006095.jpg
