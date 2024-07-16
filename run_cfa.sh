@@ -10,9 +10,9 @@ BASE_WEIGHT=checkpoints/rdd1/defrcn_det_r101_base1/model_reset_surgery.pth
 
 # ------------------------------ 2 step Novel Fine-tuning ------------------------------- #
 # --> 2. TFA-like, i.e. run seed0~9 for robust results (G-FSOD, 80 classes)
-for SPLIT_ID in 1
+for SPLIT_ID in 1 2 3
 do
-    for shot in 1
+    for shot in  2 3 5 10
     do
         python3 tools/create_config.py --dataset voc --config_root configs/rdd               \
             --shot ${shot} --seed ${seed} --setting 'gfsod' --split ${SPLIT_ID}
